@@ -1,52 +1,186 @@
 /**
- * IBM BOB PROMPT TEMPLATES
- * Carefully crafted prompts for multi-step AI analysis
- * Optimized for IBM Bob's capabilities and token efficiency
- * 
+ * IBM BOB PROMPT TEMPLATES - ENHANCED VERSION
+ * Advanced prompts for comprehensive AI-powered security analysis
+ * Optimized for IBM Bob's capabilities with improved context awareness
+ *
  * @module bobPrompts
  * @author Harshal - Team AVON
+ * @version 2.0.0
+ * @enhanced 2026-05-01
  */
 
 'use strict';
 
 /**
- * Prompt templates for different analysis stages
- * Each prompt is designed to maximize Bob's context awareness
+ * Prompt configuration and metadata
+ */
+const PROMPT_CONFIG = {
+  version: '2.0.0',
+  maxTokens: {
+    STRUCTURE_ANALYSIS: 4000,
+    CROSS_FILE_VULNERABILITY: 8000,
+    REMEDIATION_STRATEGY: 6000,
+    IMPACT_REPORT: 5000,
+    CODE_REVIEW: 3000,
+    THREAT_MODELING: 4000
+  },
+  temperature: 0.3, // Lower for more consistent security analysis
+  confidenceThreshold: 0.7
+};
+
+/**
+ * Enhanced prompt templates with improved instructions and examples
  */
 const PROMPTS = {
   /**
-   * STEP 1: Repository Structure Analysis
-   * Goal: Understand the codebase architecture and patterns
+   * STEP 1: Repository Structure Analysis (Enhanced)
+   * Goal: Deep understanding of codebase architecture, patterns, and attack surface
    */
-  STRUCTURE_ANALYSIS: `You are an expert software architect analyzing a codebase for security vulnerabilities.
+  STRUCTURE_ANALYSIS: `You are an elite software architect and security researcher with 15+ years of experience in vulnerability assessment and secure system design.
 
-TASK: Analyze the repository structure and identify key architectural patterns.
+MISSION: Perform a comprehensive architectural analysis to map the attack surface and identify security-critical components.
 
-FILES PROVIDED:
+REPOSITORY SNAPSHOT:
 {{fileList}}
 
 Total Files: {{fileCount}}
+Languages Detected: {{languages}}
+Framework: {{framework}}
 
-ANALYZE AND PROVIDE:
-1. **Application Architecture**: What pattern is used? (MVC, microservices, layered, etc.)
-2. **Entry Points**: List all API routes, endpoints, or main entry points
-3. **Data Storage**: Identify databases, caches, or data persistence mechanisms
-4. **External Services**: List any third-party integrations or external APIs
-5. **Authentication/Authorization**: Describe the auth mechanisms in place
-6. **Security Patterns**: Note any existing security measures (validation, sanitization, etc.)
+DEEP ANALYSIS REQUIREMENTS:
 
-OUTPUT FORMAT: JSON with the following structure:
+1. **Architectural Pattern Recognition**
+   - Identify the primary architecture (MVC, microservices, serverless, monolithic, etc.)
+   - Map component relationships and dependencies
+   - Identify design patterns (Repository, Factory, Singleton, etc.)
+   - Note any anti-patterns or architectural smells
+
+2. **Attack Surface Mapping**
+   - List ALL entry points: API routes, webhooks, file uploads, WebSocket endpoints
+   - Identify user input sources: query params, body, headers, cookies, files
+   - Map data flow from entry points to sensitive operations
+   - Note any publicly exposed endpoints without authentication
+
+3. **Data Storage & Persistence**
+   - Databases: Type (SQL/NoSQL), ORM usage, raw query patterns
+   - Caching layers: Redis, Memcached, in-memory caches
+   - File storage: Local filesystem, S3, cloud storage
+   - Session management: JWT, cookies, server-side sessions
+
+4. **External Dependencies & Integrations**
+   - Third-party APIs and their trust level
+   - Payment gateways, email services, SMS providers
+   - Cloud services (AWS, Azure, GCP)
+   - Identify outdated or vulnerable dependencies
+
+5. **Authentication & Authorization**
+   - Auth mechanism: JWT, OAuth, session-based, API keys
+   - Role-based access control (RBAC) implementation
+   - Permission checks: Where and how they're enforced
+   - Identify missing auth checks or weak implementations
+
+6. **Existing Security Measures**
+   - Input validation: Libraries used, coverage
+   - Output encoding: XSS prevention mechanisms
+   - CSRF protection: Tokens, SameSite cookies
+   - Rate limiting and DDoS protection
+   - Security headers: CSP, HSTS, X-Frame-Options
+   - Logging and monitoring capabilities
+
+7. **High-Risk Areas (Priority Targets)**
+   - Admin panels and privileged operations
+   - File upload/download functionality
+   - Database query construction
+   - Command execution or system calls
+   - Cryptographic operations
+   - Deserialization of untrusted data
+
+OUTPUT FORMAT (Strict JSON):
 {
-  "architecture": "string describing the pattern",
-  "entryPoints": ["list of entry point files"],
-  "dataStorage": ["list of data storage mechanisms"],
-  "externalServices": ["list of external services"],
-  "authentication": "description of auth mechanism",
-  "securityPatterns": ["list of existing security measures"],
-  "riskAreas": ["areas that need attention"]
+  "architecture": {
+    "pattern": "string",
+    "components": ["list of major components"],
+    "designPatterns": ["patterns identified"],
+    "antiPatterns": ["issues found"]
+  },
+  "attackSurface": {
+    "entryPoints": [
+      {
+        "file": "path/to/file.js",
+        "type": "API_ROUTE|WEBSOCKET|FILE_UPLOAD",
+        "endpoint": "/api/users",
+        "method": "POST",
+        "authRequired": true,
+        "inputSources": ["req.body", "req.params"]
+      }
+    ],
+    "publicEndpoints": ["list of unauthenticated endpoints"],
+    "totalEndpoints": 0
+  },
+  "dataStorage": {
+    "databases": [
+      {
+        "type": "PostgreSQL|MongoDB|MySQL",
+        "orm": "Sequelize|Mongoose|TypeORM",
+        "rawQueries": true,
+        "files": ["files using this DB"]
+      }
+    ],
+    "caching": ["Redis", "in-memory"],
+    "fileStorage": ["local", "S3"]
+  },
+  "externalServices": [
+    {
+      "name": "Stripe",
+      "purpose": "Payment processing",
+      "trustLevel": "HIGH|MEDIUM|LOW",
+      "files": ["files integrating this service"]
+    }
+  ],
+  "authentication": {
+    "mechanism": "JWT|OAuth|Session",
+    "implementation": "description",
+    "strengths": ["what's done well"],
+    "weaknesses": ["what's missing or weak"],
+    "middlewareFiles": ["auth middleware files"]
+  },
+  "securityMeasures": {
+    "inputValidation": {
+      "library": "joi|express-validator|zod",
+      "coverage": "HIGH|MEDIUM|LOW",
+      "gaps": ["areas without validation"]
+    },
+    "outputEncoding": {
+      "xssPrevention": true,
+      "library": "DOMPurify|escape-html"
+    },
+    "csrfProtection": true,
+    "rateLimiting": true,
+    "securityHeaders": ["CSP", "HSTS"],
+    "logging": {
+      "enabled": true,
+      "sensitiveDataLogged": false
+    }
+  },
+  "riskAreas": [
+    {
+      "area": "Admin Panel",
+      "risk": "CRITICAL|HIGH|MEDIUM|LOW",
+      "reason": "Why this is risky",
+      "files": ["affected files"]
+    }
+  ],
+  "recommendations": [
+    "Immediate action items based on findings"
+  ]
 }
 
-Be concise but thorough. Focus on security-relevant aspects.`,
+ANALYSIS GUIDELINES:
+- Be thorough but precise - every finding must be actionable
+- Prioritize security-critical components
+- Consider both obvious and subtle vulnerabilities
+- Think like an attacker: What would you target first?
+- Provide specific file paths and line numbers when possible`,
 
   /**
    * STEP 2: Cross-File Vulnerability Detection
