@@ -257,50 +257,50 @@ class BobOrchestrator {
    * @returns {Object} Complete analysis results
    */
   async runCompleteAnalysis(repoFiles) {
-    console.log('🚀 Starting Bob Orchestrator - Complete Analysis Workflow');
-    console.log(`📁 Analyzing ${repoFiles.length} files...`);
+    console.log('[BOB] Starting Bob Orchestrator - Complete Analysis Workflow');
+    console.log(`[BOB] Analyzing ${repoFiles.length} files...`);
 
     const startTime = Date.now();
 
     try {
       // STEP 1: Understand repository structure
-      console.log('\n📊 Step 1/6: Analyzing repository structure...');
+      console.log('\n[BOB] Step 1/6: Analyzing repository structure...');
       const structure = await this.analyzeRepositoryStructure(repoFiles);
 
       // STEP 2: Build dependency graph (static analysis)
-      console.log('🔗 Step 2/6: Building dependency graph...');
+      console.log('[BOB] Step 2/6: Building dependency graph...');
       const depGraph = buildDependencyGraph(repoFiles);
       this.context.dependencyGraph = depGraph;
 
       // STEP 3: Track data flows (static analysis)
-      console.log('🌊 Step 3/6: Tracking data flows...');
+      console.log('[BOB] Step 3/6: Tracking data flows...');
       const dataFlows = detectCrossFileVulnerabilities(repoFiles, depGraph);
       this.context.dataFlows = dataFlows;
 
       // STEP 4: AI-powered cross-file detection
-      console.log('🤖 Step 4/6: Running AI-powered vulnerability detection...');
+      console.log('[BOB] Step 4/6: Running AI-powered vulnerability detection...');
       const aiVulnerabilities = await this.detectCrossFileVulnerabilitiesWithAI(
         depGraph,
         dataFlows
       );
 
       // STEP 5: Generate remediation strategy
-      console.log('🔧 Step 5/6: Generating remediation strategy...');
+      console.log('[BOB] Step 5/6: Generating remediation strategy...');
       const remediation = await this.generateRemediationStrategy(
         aiVulnerabilities.vulnerabilities || dataFlows,
         repoFiles
       );
 
       // STEP 6: Create impact report
-      console.log('📈 Step 6/6: Creating change impact report...');
+      console.log('[BOB] Step 6/6: Creating change impact report...');
       const impactReport = await this.generateChangeImpactReport(remediation);
 
       const endTime = Date.now();
       const duration = ((endTime - startTime) / 1000).toFixed(2);
 
-      console.log(`\n✅ Analysis complete in ${duration}s`);
-      console.log(`📊 Found ${dataFlows.length} cross-file vulnerabilities`);
-      console.log(`🔧 Generated ${remediation.fixes?.length || 0} remediation plans`);
+      console.log(`\n[BOB] Analysis complete in ${duration}s`);
+      console.log(`[BOB] Found ${dataFlows.length} cross-file vulnerabilities`);
+      console.log(`[BOB] Generated ${remediation.fixes?.length || 0} remediation plans`);
 
       return {
         success: true,
@@ -326,7 +326,7 @@ class BobOrchestrator {
         }
       };
     } catch (error) {
-      console.error('❌ Analysis failed:', error.message);
+      console.error('[BOB] ERROR: Analysis failed:', error.message);
       
       return {
         success: false,
@@ -343,6 +343,12 @@ class BobOrchestrator {
    * @returns {String} File type
    */
   detectFileType(filename) {
+    // If filename is missing, just call it 'unknown' instead of crashing
+    if (!filename || typeof filename !== 'string') {
+      return 'unknown';
+    }
+
+    // Check for specific file patterns
     if (filename.includes('route') || filename.includes('router')) return 'route';
     if (filename.includes('controller')) return 'controller';
     if (filename.includes('service')) return 'service';
@@ -353,6 +359,8 @@ class BobOrchestrator {
     if (filename.endsWith('.js')) return 'javascript';
     if (filename.endsWith('.ts')) return 'typescript';
     if (filename.endsWith('.json')) return 'json';
+    
+    // Always have a fallback
     return 'unknown';
   }
 
