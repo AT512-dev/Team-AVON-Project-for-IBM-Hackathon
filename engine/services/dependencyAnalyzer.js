@@ -48,6 +48,21 @@ function buildDependencyGraph(repoFiles) {
           type: 'import',
           importedItems: importInfo.items
         });
+      } else {
+        // Try to find by partial match for relative imports
+        const possibleMatches = Array.from(graph.fileMap.keys()).filter(file => {
+          const importName = importInfo.path.replace(/^\.\.?\//, '').replace(/\//g, '/');
+          return file.includes(importName) || file.endsWith(importName + '.js');
+        });
+        
+        if (possibleMatches.length > 0) {
+          graph.edges.push({
+            from: node.file,
+            to: possibleMatches[0],
+            type: 'import',
+            importedItems: importInfo.items
+          });
+        }
       }
     });
   });
@@ -177,31 +192,31 @@ function extractFunctions(content) {
   const lines = content.split('\n');
 
   lines.forEach((line, index) => {
-    // Pattern 1: function name() { }
-    let match = line.match(/function\s+(\w+)\s*\(/);
+    // Pattern 1: async function name() { } (check before regular function)
+    let match = line.match(/async\s+function\s+(\w+)\s*\(/);
+    if (match) {
+      functions.push({ name: match[1], line: index + 1, type: 'async.function' });
+      return;
+    }
+
+    // Pattern 2: function name() { }
+    match = line.match(/function\s+(\w+)\s*\(/);
     if (match) {
       functions.push({ name: match[1], line: index + 1, type: 'function' });
       return;
     }
 
-    // Pattern 2: const name = function() { }
+    // Pattern 3: const name = function() { }
     match = line.match(/(?:const|let|var)\s+(\w+)\s*=\s*function/);
     if (match) {
       functions.push({ name: match[1], line: index + 1, type: 'function.expression' });
       return;
     }
 
-    // Pattern 3: const name = () => { }
+    // Pattern 4: const name = () => { }
     match = line.match(/(?:const|let|var)\s+(\w+)\s*=\s*\([^)]*\)\s*=>/);
     if (match) {
       functions.push({ name: match[1], line: index + 1, type: 'arrow.function' });
-      return;
-    }
-
-    // Pattern 4: async function name() { }
-    match = line.match(/async\s+function\s+(\w+)\s*\(/);
-    if (match) {
-      functions.push({ name: match[1], line: index + 1, type: 'async.function' });
       return;
     }
 
