@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVON Security Audit Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            background: #1a1a1a;
+            color: white;
+            padding: 48px 60px;
+            border-bottom: 4px solid #0066cc;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        
+        .header .subtitle {
+            font-size: 1.05em;
+            color: #b8b8b8;
+            font-weight: 400;
+        }
+        
+        .audit-info {
+            background: #fafafa;
+            padding: 40px 60px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 40px;
+        }
+        
+        .info-item {
+            min-width: 0;
+        }
+        
+        .info-label {
+            font-size: 0.7em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            display: block;
+        }
+        
+        .info-value {
+            font-size: 1em;
+            font-weight: 500;
+            color: #1a1a1a;
+            word-break: break-word;
+        }
+        
+        .summary {
+            padding: 50px 60px;
+        }
+        
+        .section-title {
+            color: #1a1a1a;
+            margin-bottom: 35px;
+            font-size: 1.6em;
+            font-weight: 600;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 15px;
+            letter-spacing: -0.3px;
+        }
+        
+        .risk-score-container {
+            background: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .risk-score-value {
+            font-size: 4em;
+            font-weight: 700;
+            color: #dc3545;
+            margin-bottom: 12px;
+            line-height: 1;
+        }
+        
+        .risk-score-label {
+            font-size: 0.85em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .grade {
+            display: inline-block;
+            background: #dc3545;
+            color: white;
+            padding: 10px 32px;
+            border-radius: 6px;
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-top: 15px;
+            letter-spacing: 2px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 32px 24px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card.critical {
+            border-left: 5px solid #dc3545;
+        }
+        
+        .stat-card.high {
+            border-left: 5px solid #ff8c00;
+        }
+        
+        .stat-card.medium {
+            border-left: 5px solid #ffc107;
+        }
+        
+        .stat-card.low {
+            border-left: 5px solid #28a745;
+        }
+        
+        .stat-number {
+            font-size: 3em;
+            font-weight: 700;
+            margin-bottom: 12px;
+            line-height: 1;
+        }
+        
+        .stat-card.critical .stat-number {
+            color: #dc3545;
+        }
+        
+        .stat-card.high .stat-number {
+            color: #ff8c00;
+        }
+        
+        .stat-card.medium .stat-number {
+            color: #ffc107;
+        }
+        
+        .stat-card.low .stat-number {
+            color: #28a745;
+        }
+        
+        .stat-label {
+            font-size: 0.8em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        .vulnerabilities {
+            padding: 50px 60px;
+            background: #fafafa;
+        }
+        
+        .vuln-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border-left: 5px solid #ccc;
+            transition: box-shadow 0.2s;
+        }
+        
+        .vuln-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .vuln-card.critical {
+            border-left-color: #dc3545;
+        }
+        
+        .vuln-card.high {
+            border-left-color: #ff8c00;
+        }
+        
+        .vuln-card.medium {
+            border-left-color: #ffc107;
+        }
+        
+        .vuln-card.low {
+            border-left-color: #28a745;
+        }
+        
+        .vuln-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .vuln-title {
+            font-size: 1.25em;
+            font-weight: 600;
+            color: #1a1a1a;
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .severity-badge {
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+        
+        .severity-badge.critical {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .severity-badge.high {
+            background: #ff8c00;
+            color: white;
+        }
+        
+        .severity-badge.medium {
+            background: #ffc107;
+            color: #1a1a1a;
+        }
+        
+        .severity-badge.low {
+            background: #28a745;
+            color: white;
+        }
+        
+        .vuln-meta {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 20px;
+            font-size: 0.85em;
+            color: #666;
+            flex-wrap: wrap;
+        }
+        
+        .vuln-meta span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        
+        .vuln-meta strong {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+        
+        .vuln-description {
+            margin-bottom: 20px;
+            line-height: 1.8;
+            color: #333;
+            font-size: 0.95em;
+        }
+        
+        .code-block {
+            background: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #0066cc;
+            color: #1a1a1a;
+            padding: 20px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        .info-box {
+            border-left: 4px solid #0066cc;
+            background: #f8f9fa;
+            padding: 18px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .info-box.impact {
+            border-left-color: #ffc107;
+            background: #fff9e6;
+        }
+        
+        .info-box.recommendation {
+            border-left-color: #17a2b8;
+            background: #e7f6f8;
+        }
+        
+        .info-box.remediation {
+            border-left-color: #28a745;
+            background: #e8f5e9;
+        }
+        
+        .info-box strong {
+            display: block;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        
+        .recommendations {
+            padding: 50px 60px;
+            background: white;
+        }
+        
+        .rec-section {
+            margin-bottom: 40px;
+        }
+        
+        .rec-section h3 {
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            font-size: 1.15em;
+            font-weight: 600;
+        }
+        
+        .rec-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .rec-list li {
+            padding: 14px 20px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #0066cc;
+            border-radius: 4px;
+            line-height: 1.6;
+        }
+        
+        .rec-list li:before {
+            content: "• ";
+            color: #0066cc;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        
+        .footer {
+            background: #1a1a1a;
+            color: #b8b8b8;
+            padding: 40px 60px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        .footer p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .footer strong {
+            color: white;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .container {
+                box-shadow: none;
+            }
+            
+            .vuln-card {
+                page-break-inside: avoid;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .info-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header, .audit-info, .summary, .vulnerabilities, .recommendations, .footer {
+                padding: 30px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .vuln-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .vuln-title {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>AVON Security Audit Report</h1>
+            <p class="subtitle">Automated Vulnerability and Orchestration Network</p>
+        </div>
+        
+        <!-- Audit Information -->
+        <div class="audit-info">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Audit ID</div>
+                    <div class="info-value">audit_20260501_201630_abc123</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Timestamp</div>
+                    <div class="info-value">May 1, 2026 20:16:30</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Repository</div>
+                    <div class="info-value">vulnerable-demo-app</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Files Analyzed</div>
+                    <div class="info-value">2</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Scan Duration</div>
+                    <div class="info-value">2.3 seconds</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Summary Section -->
+        <div class="summary">
+            <h2 class="section-title">Executive Summary</h2>
+            
+            <div class="risk-score-container">
+                <div class="risk-score-value">8.7</div>
+                <div class="risk-score-label">Overall Risk Score</div>
+                <div class="grade">F</div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card critical">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Critical</div>
+                </div>
+                <div class="stat-card high">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">High</div>
+                </div>
+                <div class="stat-card medium">
+                    <div class="stat-number">2</div>
+                    <div class="stat-label">Medium</div>
+                </div>
+                <div class="stat-card low">
+                    <div class="stat-number">1</div>
+                    <div class="stat-label">Low</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Vulnerabilities Section -->
+        <div class="vulnerabilities">
+            <h2 class="section-title">Detected Vulnerabilities</h2>
+            
+            <!-- Vulnerability 1 -->
+            <div class="vuln-card critical">
+                <div class="vuln-header">
+                    <div class="vuln-title">SQL Injection Vulnerability</div>
+                    <div class="severity-badge critical">Critical</div>
+                </div>
+                <div class="vuln-meta">
+                    <span><strong>File:</strong> vulnerable_app.js:18</span>
+                    <span><strong>CWE:</strong> CWE-89</span>
+                    <span><strong>CVSS:</strong> 9.8</span>
+                </div>
+                <div class="vuln-description">
+                    Direct string concatenation in SQL query allows SQL injection attacks. An attacker can manipulate the userId parameter to execute arbitrary SQL commands.
+                </div>
+                <div class="code-block">const query = `SELECT * FROM users WHERE id = ${userId}`;</div>
+                <div class="info-box impact">
+                    <strong>Impact</strong>
+                    HIGH confidentiality, integrity, and availability impact. Easy to exploit.
+                </div>
+                <div class="info-box recommendation">
+                    <strong>Recommendation</strong>
+                    Use parameterized queries or prepared statements
+                </div>
+                <div class="info-box remediation">
+                    <strong>Suggested Fix</strong>
+                    const query = 'SELECT * FROM users WHERE id = ?';<br>
+                    db.query(query, [userId], (err, results) => { ... });
+                </div>
+            </div>
+            
+            <!-- Vulnerability 2 -->
+            <div class="vuln-card critical">
+                <div class="vuln-header">
+                    <div class="vuln-title">Hardcoded Credentials</div>
+                    <div class="severity-badge critical">Critical</div>
+                </div>
+                <div class="vuln-meta">
+                    <span><strong>File:</strong> vulnerable_app.js:11</span>
+                    <span><strong>CWE:</strong> CWE-798</span>
+                    <span><strong>CVSS:</strong> 9.1</span>
+                </div>
+                <div class="vuln-description">
+                    Database credentials are hardcoded in the source code. This exposes sensitive authentication information to anyone with access to the codebase.
+                </div>
+                <div class="code-block">password: 'admin123'</div>
+                <div class="info-box recommendation">
+                    <strong>Recommendation</strong>
+                    Store credentials in environment variables or secure vault
+                </div>
+                <div class="info-box remediation">
+                    <strong>Suggested Fix</strong>
+                    password: process.env.DB_PASSWORD
+                </div>
+            </div>
+            
+            <!-- Vulnerability 3 -->
+            <div class="vuln-card critical">
+                <div class="vuln-header">
+                    <div class="vuln-title">Command Injection</div>
+                    <div class="severity-badge critical">Critical</div>
+                </div>
+                <div class="vuln-meta">
+                    <span><strong>File:</strong> vulnerable_app.js:29</span>
+                    <span><strong>CWE:</strong> CWE-78</span>
+                    <span><strong>CVSS:</strong> 9.8</span>
+                </div>
+                <div class="vuln-description">
+                    User-controlled input is directly passed to shell command execution. An attacker can inject malicious commands by manipulating the filename parameter.
+                </div>
+                <div class="code-block">exec(`tar -czf /backups/${filename}.tar.gz /data`, ...)</div>
+                <div class="info-box recommendation">
+                    <strong>Recommendation</strong>
+                    Validate and sanitize input, use safe alternatives to exec()
+                </div>
+            </div>
+            
+            <!-- Vulnerability 4 -->
+            <div class="vuln-card critical">
+                <div class="vuln-header">
+                    <div class="vuln-title">Privilege Escalation Risk</div>
+                    <div class="severity-badge critical">Critical</div>
+                </div>
+                <div class="vuln-meta">
+                    <span><strong>File:</strong> user_service.js:23</span>
+                    <span><strong>CWE:</strong> CWE-269</span>
+                    <span><strong>CVSS:</strong> 9.1</span>
+                </div>
+                <div class="vuln-description">
+                    No authorization check allows any user to escalate privileges by changing their role to admin.
+                </div>
+                <div class="info-box recommendation">
+                    <strong>Recommendation</strong>
+                    Implement role-based access control (RBAC)
+                </div>
+            </div>
+            
+            <!-- Vulnerability 5 -->
+            <div class="vuln-card high">
+                <div class="vuln-header">
+                    <div class="vuln-title">Insecure Direct Object Reference</div>
+                    <div class="severity-badge high">High</div>
+                </div>
+                <div class="vuln-meta">
+                    <span><strong>File:</strong> vulnerable_app.js:38</span>
+                    <span><strong>CWE:</strong> CWE-639</span>
+                    <span><strong>CVSS:</strong> 8.1</span>
+                </div>
+                <div class="vuln-description">
+                    No authorization check before accessing documents. Users can access any document by guessing or enumerating document IDs.
+                </div>
+                <div class="info-box recommendation">
+                    <strong>Recommendation</strong>
+                    Implement proper authorization checks before file access
+                </div>
+            </div>
+            
+            <!-- Vulnerability 6 -->
+            <div class="vuln-card high">
+                <div class="vuln-header">
+                    <div class="vuln-title">Weak Cryptographic Hash (MD5)</div>
+                    <div class="severity-badge high">High</div>
+                </div>
+                <div class="vuln-meta">
+                    <span><strong>File:</strong> user_service.js:8</span>
+                    <span><strong>CWE:</strong> CWE-327</span>
+                    <span><strong>CVSS:</strong> 7.4</span>
+                </div>
+                <div class="vuln-description">
+                    MD5 is cryptographically broken and unsuitable for password hashing. Passwords can be easily cracked using rainbow tables or brute force.
+                </div>
+                <div class="info-box remediation">
+                    <strong>Suggested Fix</strong>
+                    const bcrypt = require('bcrypt');<br>
+                    return bcrypt.hash(password, 10);
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recommendations Section -->
+        <div class="recommendations">
+            <h2 class="section-title">Recommendations</h2>
+            
+            <div class="rec-section">
+                <h3>Immediate Actions</h3>
+                <ul class="rec-list">
+                    <li>Fix all CRITICAL severity vulnerabilities (SQL Injection, Command Injection, Privilege Escalation)</li>
+                    <li>Implement authentication and authorization middleware</li>
+                    <li>Remove hardcoded credentials and use environment variables</li>
+                </ul>
+            </div>
+            
+            <div class="rec-section">
+                <h3>Short-term Actions</h3>
+                <ul class="rec-list">
+                    <li>Replace MD5 with bcrypt for password hashing</li>
+                    <li>Add input validation across all endpoints</li>
+                    <li>Implement proper error handling</li>
+                </ul>
+            </div>
+            
+            <div class="rec-section">
+                <h3>Long-term Actions</h3>
+                <ul class="rec-list">
+                    <li>Conduct comprehensive security code review</li>
+                    <li>Implement automated security testing in CI/CD pipeline</li>
+                    <li>Add security headers and rate limiting</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Generated by AVON v1.0.0</strong></p>
+            <p>Powered by IBM Granite 3.1 8B Instruct Model</p>
+            <p>Analysis Depth: DEEP | Confidence Level: HIGH</p>
+        </div>
+    </div>
+</body>
+</html>

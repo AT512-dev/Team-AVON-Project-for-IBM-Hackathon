@@ -1,0 +1,380 @@
+{
+  "auditId": "audit_20260501_201630_abc123",
+  "timestamp": "2026-05-01T20:16:30.000Z",
+  "repository": {
+    "name": "vulnerable-demo-app",
+    "path": "Team-AVON-Project/demo_samples",
+    "filesAnalyzed": 2
+  },
+  "summary": {
+    "totalVulnerabilities": 12,
+    "criticalCount": 4,
+    "highCount": 5,
+    "mediumCount": 2,
+    "lowCount": 1,
+    "overallRiskScore": 8.7,
+    "securityGrade": "F"
+  },
+  "vulnerabilities": [
+    {
+      "id": "VULN-001",
+      "title": "SQL Injection Vulnerability",
+      "severity": "CRITICAL",
+      "cvssScore": 9.8,
+      "cwe": "CWE-89",
+      "file": "vulnerable_app.js",
+      "lineNumber": 18,
+      "code": "const query = `SELECT * FROM users WHERE id = ${userId}`;",
+      "description": "Direct string concatenation in SQL query allows SQL injection attacks. An attacker can manipulate the userId parameter to execute arbitrary SQL commands.",
+      "impact": {
+        "confidentiality": "HIGH",
+        "integrity": "HIGH",
+        "availability": "HIGH",
+        "exploitability": "EASY"
+      },
+      "dataFlow": {
+        "source": "req.params.id (Line 17)",
+        "sink": "db.query (Line 20)",
+        "taintedVariables": ["userId", "query"]
+      },
+      "recommendation": "Use parameterized queries or prepared statements",
+      "remediation": {
+        "priority": "IMMEDIATE",
+        "effort": "LOW",
+        "suggestedFix": "const query = 'SELECT * FROM users WHERE id = ?';\ndb.query(query, [userId], (err, results) => { ... });"
+      }
+    },
+    {
+      "id": "VULN-002",
+      "title": "Hardcoded Credentials",
+      "severity": "CRITICAL",
+      "cvssScore": 9.1,
+      "cwe": "CWE-798",
+      "file": "vulnerable_app.js",
+      "lineNumber": 11,
+      "code": "password: 'admin123'",
+      "description": "Database credentials are hardcoded in the source code. This exposes sensitive authentication information to anyone with access to the codebase.",
+      "impact": {
+        "confidentiality": "HIGH",
+        "integrity": "HIGH",
+        "availability": "HIGH",
+        "exploitability": "MEDIUM"
+      },
+      "recommendation": "Store credentials in environment variables or secure vault",
+      "remediation": {
+        "priority": "IMMEDIATE",
+        "effort": "LOW",
+        "suggestedFix": "password: process.env.DB_PASSWORD"
+      }
+    },
+    {
+      "id": "VULN-003",
+      "title": "Command Injection",
+      "severity": "CRITICAL",
+      "cvssScore": 9.8,
+      "cwe": "CWE-78",
+      "file": "vulnerable_app.js",
+      "lineNumber": 29,
+      "code": "exec(`tar -czf /backups/${filename}.tar.gz /data`, ...)",
+      "description": "User-controlled input is directly passed to shell command execution. An attacker can inject malicious commands by manipulating the filename parameter.",
+      "impact": {
+        "confidentiality": "HIGH",
+        "integrity": "HIGH",
+        "availability": "HIGH",
+        "exploitability": "EASY"
+      },
+      "dataFlow": {
+        "source": "req.body.filename (Line 27)",
+        "sink": "exec() (Line 29)",
+        "taintedVariables": ["filename"]
+      },
+      "recommendation": "Validate and sanitize input, use safe alternatives to exec()",
+      "remediation": {
+        "priority": "IMMEDIATE",
+        "effort": "MEDIUM",
+        "suggestedFix": "Use child_process.spawn() with array arguments or validate filename against whitelist"
+      }
+    },
+    {
+      "id": "VULN-004",
+      "title": "Insecure Direct Object Reference (IDOR)",
+      "severity": "HIGH",
+      "cvssScore": 8.1,
+      "cwe": "CWE-639",
+      "file": "vulnerable_app.js",
+      "lineNumber": 38,
+      "code": "const filePath = `/documents/${docId}.pdf`;",
+      "description": "No authorization check before accessing documents. Users can access any document by guessing or enumerating document IDs.",
+      "impact": {
+        "confidentiality": "HIGH",
+        "integrity": "LOW",
+        "availability": "LOW",
+        "exploitability": "EASY"
+      },
+      "recommendation": "Implement proper authorization checks before file access",
+      "remediation": {
+        "priority": "HIGH",
+        "effort": "MEDIUM",
+        "suggestedFix": "Verify user ownership or permissions before serving files"
+      }
+    },
+    {
+      "id": "VULN-005",
+      "title": "Missing Authentication",
+      "severity": "HIGH",
+      "cvssScore": 7.5,
+      "cwe": "CWE-306",
+      "file": "vulnerable_app.js",
+      "lineNumber": 43,
+      "code": "app.delete('/user/:id', (req, res) => {",
+      "description": "Critical DELETE operation has no authentication or authorization checks. Any user can delete any user account.",
+      "impact": {
+        "confidentiality": "LOW",
+        "integrity": "HIGH",
+        "availability": "HIGH",
+        "exploitability": "EASY"
+      },
+      "recommendation": "Implement authentication middleware and authorization checks",
+      "remediation": {
+        "priority": "HIGH",
+        "effort": "MEDIUM",
+        "suggestedFix": "Add authentication middleware and verify user permissions"
+      }
+    },
+    {
+      "id": "VULN-006",
+      "title": "Sensitive Data Exposure",
+      "severity": "HIGH",
+      "cvssScore": 7.5,
+      "cwe": "CWE-200",
+      "file": "vulnerable_app.js",
+      "lineNumber": 52,
+      "code": "res.json(results);",
+      "description": "Endpoint returns all user data including sensitive information like passwords without filtering.",
+      "impact": {
+        "confidentiality": "HIGH",
+        "integrity": "LOW",
+        "availability": "LOW",
+        "exploitability": "EASY"
+      },
+      "recommendation": "Filter sensitive fields before returning data",
+      "remediation": {
+        "priority": "HIGH",
+        "effort": "LOW",
+        "suggestedFix": "Select only necessary fields or filter out sensitive data before response"
+      }
+    },
+    {
+      "id": "VULN-007",
+      "title": "Weak Cryptographic Hash (MD5)",
+      "severity": "HIGH",
+      "cvssScore": 7.4,
+      "cwe": "CWE-327",
+      "file": "user_service.js",
+      "lineNumber": 8,
+      "code": "return crypto.createHash('md5').update(password).digest('hex');",
+      "description": "MD5 is cryptographically broken and unsuitable for password hashing. Passwords can be easily cracked using rainbow tables or brute force.",
+      "impact": {
+        "confidentiality": "HIGH",
+        "integrity": "MEDIUM",
+        "availability": "LOW",
+        "exploitability": "MEDIUM"
+      },
+      "recommendation": "Use bcrypt, scrypt, or Argon2 for password hashing",
+      "remediation": {
+        "priority": "HIGH",
+        "effort": "MEDIUM",
+        "suggestedFix": "const bcrypt = require('bcrypt');\nreturn bcrypt.hash(password, 10);"
+      }
+    },
+    {
+      "id": "VULN-008",
+      "title": "Missing Input Validation",
+      "severity": "MEDIUM",
+      "cvssScore": 6.5,
+      "cwe": "CWE-20",
+      "file": "user_service.js",
+      "lineNumber": 12,
+      "code": "static async createUser(userData) {",
+      "description": "No validation of user input before processing. This can lead to data integrity issues and potential injection attacks.",
+      "impact": {
+        "confidentiality": "LOW",
+        "integrity": "HIGH",
+        "availability": "LOW",
+        "exploitability": "MEDIUM"
+      },
+      "recommendation": "Implement input validation using a validation library",
+      "remediation": {
+        "priority": "MEDIUM",
+        "effort": "MEDIUM",
+        "suggestedFix": "Validate userData fields (email format, username length, etc.) before processing"
+      }
+    },
+    {
+      "id": "VULN-009",
+      "title": "Privilege Escalation Risk",
+      "severity": "CRITICAL",
+      "cvssScore": 9.1,
+      "cwe": "CWE-269",
+      "file": "user_service.js",
+      "lineNumber": 23,
+      "code": "static async updateUserRole(userId, newRole) {",
+      "description": "No authorization check allows any user to escalate privileges by changing their role to admin.",
+      "impact": {
+        "confidentiality": "HIGH",
+        "integrity": "HIGH",
+        "availability": "HIGH",
+        "exploitability": "EASY"
+      },
+      "recommendation": "Implement role-based access control (RBAC)",
+      "remediation": {
+        "priority": "IMMEDIATE",
+        "effort": "MEDIUM",
+        "suggestedFix": "Verify that the requesting user has admin privileges before allowing role changes"
+      }
+    },
+    {
+      "id": "VULN-010",
+      "title": "SQL Injection in User Service",
+      "severity": "HIGH",
+      "cvssScore": 8.6,
+      "cwe": "CWE-89",
+      "file": "user_service.js",
+      "lineNumber": 29,
+      "code": "const query = `SELECT * FROM users WHERE email = '${email}'`;",
+      "description": "String concatenation in SQL query allows SQL injection through the email parameter.",
+      "impact": {
+        "confidentiality": "HIGH",
+        "integrity": "HIGH",
+        "availability": "MEDIUM",
+        "exploitability": "EASY"
+      },
+      "dataFlow": {
+        "source": "email parameter (Line 28)",
+        "sink": "db.query (Line 30)",
+        "taintedVariables": ["email", "query"]
+      },
+      "recommendation": "Use parameterized queries",
+      "remediation": {
+        "priority": "HIGH",
+        "effort": "LOW",
+        "suggestedFix": "const query = 'SELECT * FROM users WHERE email = ?';\nreturn db.query(query, [email]);"
+      }
+    },
+    {
+      "id": "VULN-011",
+      "title": "Cross-File Data Flow Vulnerability",
+      "severity": "MEDIUM",
+      "cvssScore": 6.8,
+      "cwe": "CWE-501",
+      "file": "user_service.js",
+      "lineNumber": 16,
+      "code": "return db.insert('users', { ... });",
+      "description": "Untrusted data flows from user input through UserService to database without proper sanitization across multiple files.",
+      "impact": {
+        "confidentiality": "MEDIUM",
+        "integrity": "HIGH",
+        "availability": "LOW",
+        "exploitability": "MEDIUM"
+      },
+      "dataFlow": {
+        "source": "userData parameter",
+        "intermediateSteps": ["hashPassword", "db.insert"],
+        "sink": "database",
+        "affectedFiles": ["user_service.js", "database.js"]
+      },
+      "recommendation": "Implement validation at service layer boundaries",
+      "remediation": {
+        "priority": "MEDIUM",
+        "effort": "MEDIUM",
+        "suggestedFix": "Add input validation and sanitization before database operations"
+      }
+    },
+    {
+      "id": "VULN-012",
+      "title": "Information Disclosure via Error Messages",
+      "severity": "LOW",
+      "cvssScore": 4.3,
+      "cwe": "CWE-209",
+      "file": "vulnerable_app.js",
+      "lineNumber": 20,
+      "code": "if (err) throw err;",
+      "description": "Detailed error messages may expose sensitive information about database structure and queries.",
+      "impact": {
+        "confidentiality": "LOW",
+        "integrity": "NONE",
+        "availability": "NONE",
+        "exploitability": "EASY"
+      },
+      "recommendation": "Implement proper error handling with generic error messages",
+      "remediation": {
+        "priority": "LOW",
+        "effort": "LOW",
+        "suggestedFix": "Log detailed errors server-side, return generic messages to clients"
+      }
+    }
+  ],
+  "crossFileVulnerabilities": [
+    {
+      "id": "CROSS-001",
+      "title": "Weak Password Hash Propagation",
+      "severity": "HIGH",
+      "description": "Weakly hashed passwords from user_service.js are stored and used across the application",
+      "affectedFiles": ["user_service.js", "vulnerable_app.js"],
+      "dataFlowChain": [
+        "User input → UserService.createUser() → MD5 hash → Database → Authentication checks"
+      ],
+      "impact": "Compromised passwords can be used to access multiple parts of the application"
+    },
+    {
+      "id": "CROSS-002",
+      "title": "Privilege Escalation Chain",
+      "severity": "CRITICAL",
+      "description": "Combination of missing authentication and role update function allows complete system compromise",
+      "affectedFiles": ["vulnerable_app.js", "user_service.js"],
+      "attackScenario": "Attacker can call updateUserRole without authentication to gain admin privileges, then access all protected resources"
+    }
+  ],
+  "recommendations": {
+    "immediate": [
+      "Fix all CRITICAL severity vulnerabilities (SQL Injection, Command Injection, Privilege Escalation)",
+      "Implement authentication and authorization middleware",
+      "Remove hardcoded credentials and use environment variables"
+    ],
+    "shortTerm": [
+      "Replace MD5 with bcrypt for password hashing",
+      "Add input validation across all endpoints",
+      "Implement proper error handling"
+    ],
+    "longTerm": [
+      "Conduct security code review",
+      "Implement automated security testing in CI/CD",
+      "Add security headers and rate limiting"
+    ]
+  },
+  "complianceIssues": [
+    {
+      "standard": "OWASP Top 10 2021",
+      "violations": [
+        "A01:2021 - Broken Access Control",
+        "A03:2021 - Injection",
+        "A07:2021 - Identification and Authentication Failures"
+      ]
+    },
+    {
+      "standard": "CWE Top 25",
+      "violations": [
+        "CWE-89: SQL Injection",
+        "CWE-78: OS Command Injection",
+        "CWE-798: Use of Hard-coded Credentials"
+      ]
+    }
+  ],
+  "metadata": {
+    "scanDuration": "2.3 seconds",
+    "engineVersion": "AVON v1.0.0",
+    "ibmBobModel": "granite-3.1-8b-instruct",
+    "analysisDepth": "DEEP",
+    "confidenceLevel": "HIGH"
+  }
+}
