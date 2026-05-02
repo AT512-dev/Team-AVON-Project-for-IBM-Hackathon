@@ -271,6 +271,48 @@ export const GLOBAL_STYLES = `
   }
   .mode-btn.active  { background: #6366f1; color: #fff; }
   .mode-btn.inactive { background: transparent; color: var(--mode-inactive); }
+  
+  /* ── Repository URL Input ──────────────────────────────────────── */
+  .repo-input-container {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: 9999px;
+    padding: 0.75rem 1.5rem;
+    transition: border-color 0.2s, background 0.3s;
+  }
+  .repo-input-container:focus-within {
+    border-color: #6366f1;
+    background: var(--bg-card);
+  }
+  .repo-icon {
+    font-size: 20px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .repo-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+  }
+  .repo-input::placeholder {
+    color: var(--text-muted);
+  }
+  .repo-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
   .run-btn {
     position: relative;
     padding: 1rem 3rem;

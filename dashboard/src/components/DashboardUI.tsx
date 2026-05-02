@@ -32,6 +32,7 @@ export default function DashboardUI() {
   const [lastAudit, setLastAudit] = useState<string | null>(null);
   const [apiStatus, setApiStatus] = useState<ApiStatus>("checking");
   const [activeView, setActiveView] = useState<ActiveView>("dashboard");
+  const [repoUrl, setRepoUrl] = useState<string>("");
 
   // ── Theme state ──────────────────────────────────────────────────
   const [isDark, setIsDark] = useState<boolean | null>(null);
@@ -174,6 +175,8 @@ router.get('/user/:id', (req, res) => {
             scanMode={scanMode}
             onScanModeChange={setScanMode}
             hasData={!!auditData}
+            repoUrl={repoUrl}
+            onRepoUrlChange={setRepoUrl}
           />
 
           {/* ── Main area ── */}
@@ -198,6 +201,8 @@ router.get('/user/:id', (req, res) => {
                     lastAudit={lastAudit}
                     onRunAudit={handleRunAudit}
                     onScanModeChange={setScanMode}
+                    repoUrl={repoUrl}
+                    onRepoUrlChange={setRepoUrl}
                   />
                 )}
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 export type ScanMode = "demo" | "live";
 
 interface HeroProps {
@@ -9,6 +11,8 @@ interface HeroProps {
   lastAudit: string | null;
   onRunAudit: () => void;
   onScanModeChange: (mode: ScanMode) => void;
+  repoUrl: string;
+  onRepoUrlChange: (url: string) => void;
 }
 
 export default function Hero({
@@ -18,6 +22,8 @@ export default function Hero({
   lastAudit,
   onRunAudit,
   onScanModeChange,
+  repoUrl,
+  onRepoUrlChange,
 }: HeroProps) {
   return (
     <section className="hero">
@@ -47,7 +53,18 @@ export default function Hero({
         </button>
       </div>
 
-      <br />
+      {/* Repository URL Input */}
+      <div className="repo-input-container">
+        <span className="material-symbols-outlined repo-icon">link</span>
+        <input
+          type="url"
+          className="repo-input"
+          placeholder="Enter repository URL (e.g., https://github.com/user/repo)"
+          value={repoUrl}
+          onChange={(e) => onRepoUrlChange(e.target.value)}
+          disabled={loading}
+        />
+      </div>
 
       <button
         className={`run-btn ${!loading && !hasData ? "pulse" : ""}`}
