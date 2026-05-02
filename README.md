@@ -1,60 +1,189 @@
-# CodeGuard AI  
-### Intelligent Security Audit Engine  
+# CodeGuard AI
 
-**Team AVON** | IBM Bob Hackathon 2026  
+Static code analysis engine with automated vulnerability detection and AI-powered remediation. Built for the IBM Bob Hackathon 2026 by Team AVON.
 
-AI-powered static code analysis with automated vulnerability detection and remediation suggestions powered by IBM Bob.
+## Overview
 
----
+CodeGuard AI performs deterministic static analysis on codebases to identify OWASP Top 10 vulnerabilities, tracks data flows across file boundaries, and generates remediation strategies using IBM WatsonX. The system runs entirely offline except for optional AI-enhanced analysis.
+
+**Core capabilities:**
+- Pattern-based vulnerability detection (29 vulnerability types)
+- Cross-file data flow tracking with taint analysis
+- Dependency graph construction and function call tracing
+- CVSS scoring and CWE mapping
+- Automated remediation plan generation
+- Multiple output formats (JSON, HTML, Markdown)
+
+**Detection coverage:**
+- SQL injection (parameterized query violations)
+- NoSQL injection ($where, $regex exploitation)
+- Command injection (exec, spawn, shell=true)
+- XSS (innerHTML, dangerouslySetInnerHTML)
+- Authentication failures (weak passwords, missing JWT expiry)
+- Cryptographic failures (MD5, SHA1, hardcoded secrets)
+- SSRF (unvalidated URL fetching)
+- Code injection (eval, Function constructor)
+- Access control violations (missing auth checks)
+- Security misconfigurations (CORS wildcards, disabled SSL)
+
+## Installation
+
+Prerequisites:
+- Node.js 16+
+- IBM WatsonX API key (optional, for AI remediation)
+
+```bash
+# Install engine dependencies
+cd engine
+npm install
+
+# Install dashboard dependencies (optional)
+cd ../dashboard
+npm install
+```
+
+## Configuration
+
+Create `engine/.env`:
+
+```env
+# IBM WatsonX (optional - system works without it)
+IBM_CLOUD_API_KEY=your_api_key
+WATSONX_PROJECT_ID=your_project_id
+IBM_CLOUD_URL=https://us-south.ml.cloud.ibm.com
+MODEL_ID=ibm/granite-13b-chat-v2
+
+# Server
+PORT=3001
+NODE_ENV=production
+```
+
+If you skip IBM credentials, the system falls back to static analysis only. No AI-generated remediation, but all vulnerability detection still works.
 
 ## Quick Start
 
+### Windows (one-click)
+Double-click `start-codeguard.bat` in the root directory.
+
+### Manual start
+
+Terminal 1 - Engine:
 ```bash
 cd engine
-npm install
-npm start
-````
+node server.js
+```
 
-Server runs on:
-**[http://localhost:3000](http://localhost:3000)**
+Terminal 2 - Dashboard (optional):
+```bash
+cd dashboard
+npm run dev
+```
 
----
+Engine: http://localhost:3001  
+Dashboard: http://localhost:3000
 
-## API Endpoints
+### Verify installation
 
-### Core Audit
+```bash
+curl http://localhost:3001/health
+```
 
-#### `POST /api/v1/audit`
-
-Run a security audit on provided code files.
-
-**Request**
-
+Expected response:
 ```json
 {
-  "files": [
-    {
-      "file": "auth.js",
-      "content": "const query = 'SELECT * FROM users WHERE id = ' + req.body.id;"
-    }
-  ]
+  "status": "healthy",
+  "service": "CodeGuard AI Engine",
+  "version": "3.0"
 }
 ```
 
-**Response**
+## Usage
+
+### API scan
+
+```bash
+curl -X POST http://localhost:3001/api/v1/audit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "files": [
+      {
+        "file": "routes/user.js",
+        "content": "const userId = req.query.id; db.query(`SELECT * FROM users WHERE id = ${userId}`);"
+      }
+    ]
+  }'
+```
+
+Response includes:
+- Vulnerability list with severity, line numbers, CVSS scores
+- Overall security score (0-100)
+- Impact metrics (estimated time saved, risk score)
+- Fix suggestions
+
+### Dashboard scan
+
+1. Navigate to http://localhost:3000
+2. Upload files or paste code
+3. Click "Run Security Scan"
+4. View real-time results
+
+### Demo scan
+
+```bash
+curl http://localhost:3001/api/v1/demo
+```
+
+Runs analysis on pre-loaded vulnerable code (29 vulnerabilities across 2 files).
+
+## API Endpoints
+
+**POST /api/v1/audit**  
+Run security audit on provided files.
+
+**POST /api/v1/audit/remediation**  
+Run audit with AI-powered fix generation (requires IBM credentials).
+
+**GET /api/v1/demo**  
+Demo scan with sample vulnerable code.
+
+**GET /api/v1/metrics**  
+Time-saved and efficiency metrics.
+
+**GET /api/v1/vulnerabilities/:severity**  
+Filter by CRITICAL, HIGH, MEDIUM, or LOW.
+
+**GET /health**  
+Service health check.
+
+See `ARCHITECTURE.md` for detailed API documentation and request/response schemas.
+
+## Example Output
 
 ```json
 {
   "success": true,
   "data": {
     "scan_summary": {
-      "total_issues": 29,
-      "critical": 2,
-      "high": 14,
-      "medium": 13,
-      "low": 0
+      "total_issues": 12,
+      "critical": 4,
+      "high": 5,
+      "medium": 2,
+      "low": 1
     },
-    "vulnerabilities": [...],
+    "vulnerabilities": [
+      {
+        "type": "SQL_INJECTION",
+        "severity": "CRITICAL",
+        "file": "routes/user.js",
+        "line": 18,
+        "code": "db.query(`SELECT * FROM users WHERE id = ${userId}`)",
+        "description": "SQL injection via string concatenation",
+        "fix_suggestion": "Use parameterized queries with placeholders",
+        "confidence": 0.95,
+        "cvss_score": 9.8,
+        "cwe_id": "CWE-89"
+      }
+    ],
     "impact": {
       "estimated_savings_usd": 18500,
       "risk_score_total": 24.3
@@ -64,176 +193,134 @@ Run a security audit on provided code files.
 }
 ```
 
----
+## Testing
 
-#### `POST /api/v1/audit/remediation`
+Run the test suite:
 
-Run audit with IBM Bob remediation suggestions.
-
-**Includes**
-
-* Full vulnerability breakdown
-* IBM Bob-ready fix prompts
-* Test case templates
-* Priority scoring
-* Estimated effort
-
----
-
-### Demo & Utility
-
-#### `GET /api/v1/demo`
-
-Instant demo with pre-loaded vulnerable code (29 vulnerabilities).
-
-#### `GET /api/v1/metrics`
-
-**Response**
-
-```json
-{
-  "total_vulnerabilities": 29,
-  "manual_review_time_minutes": 435,
-  "automated_scan_time_minutes": 2,
-  "time_saved_minutes": 433,
-  "time_saved_hours": 7.2,
-  "efficiency_improvement": "100%"
-}
+```bash
+cd engine
+npm test
 ```
 
-#### `GET /api/v1/vulnerabilities/:severity`
+Current test coverage:
+- 106 passing tests across 3 suites
+- Security rules: 39 tests (OWASP Top 10 coverage)
+- Data flow tracker: 35 tests
+- Dependency analyzer: 32 tests
+- 100% test success rate
+- < 1 second total execution time
 
-Filter by: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`
+Tests follow TDD principles with integration-style validation through public interfaces.
 
----
+## IBM WatsonX Setup
 
-## Detection Capabilities
+The system works without IBM credentials, but AI remediation requires:
 
-### OWASP Top 10 Coverage
+1. Create IBM Cloud account at https://cloud.ibm.com
+2. Navigate to "Manage" → "Access (IAM)" → "API keys"
+3. Click "Create" and copy the API key
+4. Go to https://dataplatform.cloud.ibm.com/wx/home
+5. Create or select a project
+6. Copy the Project ID from "Manage" → "General"
+7. Add credentials to `engine/.env`
 
-* **A01:** Broken Access Control — Missing authentication, exposed admin routes
-* **A02:** Cryptographic Failures — Weak hashing (MD5, SHA1), hardcoded secrets
-* **A03:** Injection — SQL, NoSQL, command, and code injection
-* **A04:** Insecure Design — Missing rate limiting, weak session tokens
-* **A05:** Security Misconfiguration — CORS wildcards, disabled SSL verification
-* **A06:** Vulnerable Components — Outdated dependencies
-* **A07:** Authentication Failures — Weak passwords, missing JWT expiry
-* **A08:** Software & Data Integrity — eval(), unsafe deserialization
-* **A09:** Logging Failures — Missing error handling
-* **A10:** SSRF — Unvalidated URL fetching
+Recommended model: `ibm/granite-13b-chat-v2` (best for code analysis)
 
-### Detection Features
+If authentication fails, the system logs a warning and continues with static analysis only.
 
-* Confidence scoring (0.0–1.0)
-* Risk-adjusted impact calculation
-* Fix suggestions per vulnerability
-* Security explanations ("Why it matters")
-* Line-level detection (file + line number)
+## Security
 
----
+- Never commit `.env` files
+- API keys are server-side only (never exposed to frontend)
+- Rotate API keys every 90 days
+- Use separate keys for dev/staging/production
+- Monitor IBM Cloud usage dashboard for unexpected spikes
 
 ## Architecture
 
 ```
-main-repo/
-├── engine/
-│   ├── app.js
-│   ├── server.js
-│   ├── controllers/
-│   │   └── auditController.js
-│   ├── routes/
-│   │   └── audit.js
-│   ├── services/
-│   │   ├── auditService.js
-│   │   ├── runAudit.js
-│   │   ├── runAuditWithRemediation.js
-│   │   ├── formatResponse.js
-│   │   ├── remediation.js
-│   │   └── mockRepo.js
-│   ├── middleware/
-│   └── config/
-├── security_rules/
-│   ├── index.js
-│   └── impact.js
-└── README.md
+engine/
+├── server.js                 # Express server entry point
+├── app.js                    # App configuration
+├── routes/
+│   └── audit.js              # API route definitions
+├── controllers/
+│   └── auditController.js    # Request handlers
+├── services/
+│   ├── auditService.js       # Main audit orchestration
+│   ├── dataFlowTracker.js    # Cross-file data flow analysis
+│   ├── dependencyAnalyzer.js # Dependency graph construction
+│   ├── bobOrchestrator.js    # IBM WatsonX integration
+│   └── remediation.js        # Fix generation
+├── config/
+│   └── ibmBobClient.js       # IBM API client
+├── middleware/
+│   ├── validateRequest.js    # Input validation
+│   └── errorHandler.js       # Error middleware
+└── security_rules/
+    └── index.js              # Vulnerability detection patterns
+
+dashboard/ (optional)
+├── src/
+│   ├── components/           # React components
+│   ├── pages/                # Page containers
+│   └── services/             # API client
+└── public/                   # Static assets
 ```
 
----
+See `ARCHITECTURE.md` for detailed design documentation.
 
-## Key Features
+## Troubleshooting
 
-### Real Static Analysis
+**Engine won't start**
+- Check that `engine/.env` exists
+- Verify Node.js version (16+)
+- Review terminal output for specific errors
 
-* Pattern-based detection (not AI guessing)
-* 29 vulnerability types detected
-* Deterministic and explainable results
+**"IBM_CLOUD_API_KEY is not set"**
+- This is a warning, not a fatal error
+- System falls back to static analysis
+- Add credentials to `engine/.env` to enable AI features
 
-### Business Impact Metrics
+**Dashboard shows "Connection Error"**
+- Verify engine is running on port 3001
+- Check `curl http://localhost:3001/health`
+- Review firewall settings
 
-* $18,500 estimated savings (demo data)
-* 7.2 hours saved per scan
-* Risk-adjusted scoring
+**API returns 401/403**
+- Verify IBM API key is correct (no extra spaces)
+- Check API key hasn't expired
+- Confirm you have credits/quota remaining
 
-### IBM Bob Integration
+## Performance
 
-* Structured prompts for automated fixes
-* Test case generation
-* Priority and effort estimation
+Benchmark results (100-file repository):
+- Dependency graph construction: ~1.2s
+- Data flow detection: ~2.5s
+- Complete analysis (static): ~4s
+- Complete analysis (with AI): ~8s
 
-### Production-Ready API
+Memory usage scales with repository size. Expect ~80MB baseline, +500KB per file.
 
-* RESTful design
-* Helmet security middleware
-* Morgan logging
-* Error handling
-* Request validation
+## Contributing
 
----
+This is a hackathon project. For Team AVON members:
 
-## Testing
+1. Create feature branch from `main`
+2. Write tests first (TDD)
+3. Implement feature
+4. Run full test suite (`npm test`)
+5. Submit pull request with test coverage
 
-```bash
-# Health check
-curl http://localhost:3000/health
+All commits must pass the test suite. No merge on test failures.
 
-# Demo scan
-curl http://localhost:3000/api/v1/demo
+## License
 
-# Metrics
-curl http://localhost:3000/api/v1/metrics
+Proprietary - Team AVON, IBM Bob Hackathon 2026
 
-# Critical vulnerabilities
-curl http://localhost:3000/api/v1/vulnerabilities/CRITICAL
-```
+## Team
 
----
+**Team AVON**  
+IBM Bob Hackathon 2026
 
-## Demo Results
-
-**Mock Repository Analysis**
-
-* 29 vulnerabilities detected
-* 2 CRITICAL (SSRF, Command Injection)
-* 14 HIGH (SQL Injection, XSS, etc.)
-* 13 MEDIUM (Weak crypto, misconfigurations)
-
-**Overall Security Score:** 42/100
-
----
-
-## Tech Stack
-
-* Node.js 18+
-* Express.js
-* Helmet
-* Morgan
-* Custom OWASP Engine
-
----
-
-## Team AVON
-
-Built for IBM Bob Hackathon 2026
-
-**Mission:**
-Make security audits instant, automated, and actionable.
+For questions or support, contact the team through official hackathon channels.
