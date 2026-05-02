@@ -29,6 +29,20 @@ export default function DashboardUI() {
   const [lastAudit, setLastAudit] = useState<string | null>(null);
   const [apiStatus, setApiStatus] = useState<ApiStatus>("checking");
 
+  // ── Theme state ──────────────────────────────────────────────────
+  const [isDark, setIsDark] = useState(true);
+
+  const toggleTheme = useCallback(() => {
+    setIsDark((prev) => {
+      const next = !prev;
+      // Also update <body> class so globals.css background syncs
+      if (typeof document !== "undefined") {
+        document.body.classList.toggle("light", !next);
+      }
+      return next;
+    });
+  }, []);
+
   // ── API health check ─────────────────────────────────────────────
   useEffect(() => {
     const check = async () => {
@@ -67,21 +81,12 @@ router.get('/user/:id', (req, res) => {
               },
             ]);
 
-      console.log("AUDIT RESULT:", result); // 🔥 debug
-      console.log(
-        "FIRST VULN RAW:",
-        JSON.stringify(result.data.vulnerabilities[0], null, 2),
-      );
-
       if (result?.success && result?.data) {
         setAuditData(result.data);
         setLastAudit(new Date().toLocaleTimeString());
-
         try {
           const m = await getMetrics();
-          if (m?.success && m?.data) {
-            setMetrics(m.data);
-          }
+          if (m?.success && m?.data) setMetrics(m.data);
         } catch {
           // metrics optional
         }
@@ -98,7 +103,7 @@ router.get('/user/:id', (req, res) => {
     }
   }, [scanMode, apiStatus]);
 
-  // ── SAFE DATA NORMALIZATION (IMPORTANT) ───────────────────────────
+  // ── Safe data normalization ──────────────────────────────────────
   const summary = auditData?.summary ?? {
     total: 0,
     critical: 0,
@@ -106,7 +111,6 @@ router.get('/user/:id', (req, res) => {
     medium: 0,
     low: 0,
   };
-
   const impact = auditData?.impact ?? {
     time_saved_minutes: 0,
     time_saved_hours: 0,
@@ -124,12 +128,18 @@ router.get('/user/:id', (req, res) => {
     <>
       <style>{GLOBAL_STYLES}</style>
 
-      <div className="dashboard-root">
+      {/* Pass isDark as class to root — all CSS variables switch automatically */}
+      <div className={`dashboard-root ${isDark ? "" : "light"}`}>
         <div className="content">
-          {/* Navbar */}
-          <Navbar apiStatus={apiStatus} auditData={auditData} />
+          {/* 1. Navbar — receives toggle props */}
+          <Navbar
+            apiStatus={apiStatus}
+            auditData={auditData}
+            isDark={isDark}
+            onToggleTheme={toggleTheme}
+          />
 
-          {/* Hero */}
+          {/* 2. Hero */}
           <Hero
             loading={loading}
             hasData={!!auditData}
@@ -140,19 +150,19 @@ router.get('/user/:id', (req, res) => {
           />
 
           <div className="main-grid">
-            {/* Error */}
+            {/* 3. Error banner */}
             {error && <ErrorBanner message={error} />}
 
             {auditData ? (
               <>
-                {/* Metrics */}
+                {/* 4. Metric cards */}
                 <MetricsRow
                   auditData={auditData}
                   metrics={metrics}
                   beforeScore={beforeScore}
                 />
 
-                {/* Score + Severity */}
+                {/* 5. Score rings + Severity breakdown */}
                 <div className="split-row">
                   <ScoreComparison
                     beforeScore={beforeScore}
@@ -161,13 +171,13 @@ router.get('/user/:id', (req, res) => {
                   <SeverityBreakdown summary={summary} impact={impact} />
                 </div>
 
-                {/* Table */}
+                {/* 6. Vulnerabilities table */}
                 <VulnerabilitiesTable
                   vulnerabilities={vulnerabilities}
                   total={summary.total}
                 />
 
-                {/* PR Cards */}
+                {/* 7. PR cards */}
                 {vulnerabilities.length > 0 && (
                   <PRCards vulnerabilities={vulnerabilities} />
                 )}
