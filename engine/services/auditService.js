@@ -17,7 +17,9 @@ function calculateOverallScore(vulnerabilities) {
   };
 
   const totalDeduction = vulnerabilities.reduce((sum, v) => {
-    return sum + (SEVERITY_WEIGHTS[v.severity] ?? 0);
+    // Normalize severity to uppercase for consistent matching
+    const severity = v.severity?.toUpperCase();
+    return sum + (SEVERITY_WEIGHTS[severity] ?? 0);
   }, 0);
 
   const score = Math.max(0, 100 - Math.min(totalDeduction, 100));

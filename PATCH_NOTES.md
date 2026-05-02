@@ -1,7 +1,82 @@
-# Patch Notes - Remediation Strategy & Fail-Fast Validation
+# Patch Notes - Scoring Consistency & Case Sensitivity Fix
 
-**Date:** 2026-05-02  
-**Author:** Bob (Team AVON)  
+**Date:** 2026-05-02
+**Author:** Bob (Team AVON)
+**Status:** ✅ Implemented & Tested
+
+---
+
+## CRITICAL FIX: Scoring Inconsistency Between Demo and Live
+
+### Issue #3: Case Sensitivity Mismatch Causing Score Differences
+**Problem:** Demo environment showed good scores, but live environment showed incorrect (artificially high) scores.
+
+**Root Cause:** Case sensitivity mismatch in severity keys across different modules:
+- **Engine** (`engine/services/auditService.js`): Used UPPERCASE keys (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`)
+- **Controller** (`controller/utils/scoring.js`): Used lowercase keys (`critical`, `high`, `medium`, `low`)
+- **Impact Calculator** (`controller/utils/impactFormula.js`): Used lowercase keys
+
+When vulnerability data had UPPERCASE severity values (e.g., `"CRITICAL"`), the controller's scoring function couldn't match them against lowercase keys, resulting in:
+- ❌ No deduction applied (fallback to `?? 0`)
+- ❌ Artificially high scores (100 instead of expected lower scores)
+- ❌ Incorrect impact calculations
+
+**Solution:** Standardized all severity handling to UPPERCASE with case-insensitive matching:
+
+1. **Updated `controller/utils/scoring.js`:**
+   - Changed severity keys from lowercase to UPPERCASE
+   - Added `.toUpperCase()` normalization for robust matching
+   ```javascript
+   const SEVERITY_WEIGHTS = {
+     CRITICAL: 30,  // Was: critical
+     HIGH: 15,      // Was: high
+     MEDIUM: 7,     // Was: medium
+     LOW: 2,        // Was: low
+   };
+   
+   const severity = v.severity?.toUpperCase();
+   ```
+
+2. **Updated `engine/services/auditService.js`:**
+   - Added `.toUpperCase()` normalization for consistency
+   ```javascript
+   const severity = v.severity?.toUpperCase();
+   ```
+
+3. **Updated `controller/utils/impactFormula.js`:**
+   - Changed BASE_COST and LIKELIHOOD keys to UPPERCASE
+   - Added `.toUpperCase()` normalization
+   ```javascript
+   const BASE_COST = {
+     CRITICAL: 150_000,  // Was: critical
+     HIGH: 40_000,       // Was: high
+     MEDIUM: 10_000,     // Was: medium
+     LOW: 1_500,         // Was: low
+   };
+   ```
+
+4. **Updated Mock Data:**
+   - `controller/services/auditService.js`: Changed all mock severity values to UPPERCASE
+   - `controller/utils/impactFormula.js`: Changed test data to UPPERCASE
+
+**Impact:**
+- ✅ Consistent scoring across all environments
+- ✅ Demo and live environments now produce identical scores
+- ✅ Case-insensitive matching prevents future issues
+- ✅ Aligns with OWASP security standards (UPPERCASE severity levels)
+
+**Files Modified:**
+- `Team-AVON-Project/controller/utils/scoring.js`
+- `Team-AVON-Project/engine/services/auditService.js`
+- `Team-AVON-Project/controller/utils/impactFormula.js`
+- `Team-AVON-Project/controller/services/auditService.js`
+
+---
+
+# Previous Patch Notes - Remediation Strategy & Fail-Fast Validation
+
+**Date:** 2026-05-02
+**Author:** Bob (Team AVON)
 **Status:** ✅ Implemented & Tested
 
 ## Overview
