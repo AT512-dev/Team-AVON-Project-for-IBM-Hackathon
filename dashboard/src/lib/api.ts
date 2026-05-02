@@ -14,6 +14,22 @@ export interface Vulnerability {
   description: string;
   fix_suggestion: string;
   confidence: number;
+
+  // ✨ NEW FIELDS - High-value engine data
+  cvssScore?: number; // Impact score (0-10)
+  cwe?: string; // CWE identifier
+  dataFlow?: {
+    // Taint path
+    source: string;
+    sink: string;
+    taintedVariables?: string[];
+  };
+  remediation?: {
+    // Enhanced AI fix
+    priority?: string; // IMMEDIATE, HIGH, MEDIUM, LOW
+    effort?: string; // LOW, MEDIUM, HIGH
+    suggestedFix: string;
+  };
 }
 
 export interface AuditSummary {
@@ -74,6 +90,20 @@ export interface MetricsData {
 }
 
 /**
+ * Check if remediation text is code or plain text
+ */
+export function isCodeBlock(text: string): boolean {
+  return (
+    text.includes("\n") ||
+    text.includes("const ") ||
+    text.includes("function ") ||
+    text.includes("=>") ||
+    text.includes("import ") ||
+    text.includes("require(")
+  );
+}
+
+/**
  * Transform backend response to match frontend interface
  * Backend uses scan_summary, we use summary
  */
@@ -89,7 +119,14 @@ function transformAuditResponse(backendData: any): AuditData {
   const savedMinutes = manualMinutes - automatedMinutes;
 
   return {
-    vulnerabilities: backendData.vulnerabilities || [],
+    vulnerabilities: (backendData.vulnerabilities || []).map((v: any) => ({
+      ...v,
+      // Preserve new high-value fields from engine
+      cvssScore: v.cvssScore,
+      cwe: v.cwe,
+      dataFlow: v.dataFlow,
+      remediation: v.remediation,
+    })),
     summary: {
       total: totalIssues,
       critical: scanSummary?.critical || 0,
@@ -142,11 +179,11 @@ export async function runAuditWithRemediation(
     body: JSON.stringify({ files }),
   });
   const json = await res.json();
-  
+
   if (json.success && json.data) {
     json.data = transformAuditResponse(json.data);
   }
-  
+
   return json;
 }
 
@@ -154,11 +191,11 @@ export async function runAuditWithRemediation(
 export async function getDemoAudit(): Promise<ApiResponse> {
   const res = await fetch(`${BASE_URL}/api/v1/demo`);
   const json = await res.json();
-  
+
   if (json.success && json.data) {
     json.data = transformAuditResponse(json.data);
   }
-  
+
   return json;
 }
 
