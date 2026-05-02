@@ -4,7 +4,6 @@ import { useState } from "react";
 import { type Vulnerability, isCodeBlock } from "../../lib/api";
 import { SEVERITY_CONFIG } from "../styles";
 
-// ── Single PR Card ────────────────────────────────────────────────────────────
 interface PRCardProps {
   vuln: Vulnerability;
   index: number;
@@ -23,24 +22,43 @@ function PRCard({ vuln, index }: PRCardProps) {
     <>
       <style>{`
         .pr-card {
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.07);
+          background: var(--bg-card);
+          border: 1px solid var(--border-card);
           border-radius: 14px;
           padding: 1.25rem;
-          transition: border-color 0.3s, transform 0.2s;
+          transition: border-color 0.3s, transform 0.2s, background 0.3s;
           animation: rowIn 0.4s ease both;
           display: flex;
           flex-direction: column;
         }
         .pr-card:hover {
-          border-color: rgba(99,102,241,0.3);
+          border-color: rgba(99,102,241,0.4);
           transform: translateY(-2px);
+          background: var(--bg-card-hover);
+        }
+        .pr-card-title {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: var(--text-primary);
+          line-height: 1.2;
+          margin-bottom: 2px;
+        }
+        .pr-card-file {
+          font-size: 0.7rem;
+          color: var(--text-muted);
+          font-family: JetBrains Mono, monospace;
+        }
+        .pr-card-preview {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+          line-height: 1.6;
+          margin-bottom: 0.75rem;
+          flex: 1;
         }
         .pr-view-btn {
           width: 100%;
           margin-top: auto;
-          padding-top: 0.75rem;
-          padding-bottom: 0.5rem;
+          padding: 0.5rem;
           border-radius: 0.5rem;
           border: 1px solid rgba(99,102,241,0.3);
           background: transparent;
@@ -48,18 +66,44 @@ function PRCard({ vuln, index }: PRCardProps) {
           cursor: pointer;
           font-weight: 600;
           font-size: 0.75rem;
-          font-family: 'Syne', sans-serif;
+          font-family: 'Inter', sans-serif;
           transition: background 0.2s, border-color 0.2s;
         }
         .pr-view-btn:hover {
           background: rgba(99,102,241,0.1);
           border-color: rgba(99,102,241,0.5);
         }
+        .pr-impact-box {
+          margin-bottom: 0.5rem;
+          padding: 0.5rem 0.75rem;
+          border-radius: 0.5rem;
+          background: rgba(99,102,241,0.08);
+          border: 1px solid rgba(99,102,241,0.15);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .pr-impact-label {
+          color: #a5b4fc;
+          font-size: 0.7rem;
+          font-weight: 600;
+        }
+        .pr-taint-preview {
+          font-size: 0.7rem;
+          color: var(--text-muted);
+          margin-bottom: 0.5rem;
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          flex-wrap: wrap;
+        }
+
+        /* ── Modal ── */
         .modal-overlay {
           position: fixed;
           top: 0; left: 0;
           width: 100vw; height: 100vh;
-          background: rgba(0,0,0,0.85);
+          background: rgba(0,0,0,0.75);
           backdrop-filter: blur(8px);
           display: flex;
           align-items: center;
@@ -68,41 +112,81 @@ function PRCard({ vuln, index }: PRCardProps) {
           padding: 1rem;
         }
         .modal-box {
-          background: linear-gradient(135deg, rgba(30,30,35,0.97), rgba(20,20,25,0.99));
-          border: 1px solid rgba(255,255,255,0.1);
+          background: var(--bg-card);
+          border: 1px solid var(--border-card);
           border-radius: 1rem;
           width: 100%;
           max-width: 700px;
           max-height: 85vh;
           overflow-y: auto;
           padding: 2rem;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+          box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+        .modal-title {
+          color: var(--text-primary);
+          font-size: 1.125rem;
+          font-weight: 700;
+          line-height: 1.2;
         }
         .modal-close-btn {
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.1);
-          color: #9ca3af;
+          background: var(--toggle-bg);
+          border: 1px solid var(--toggle-border);
+          color: var(--text-muted);
           font-size: 1rem;
           border-radius: 0.5rem;
           padding: 0.3rem 0.7rem;
           cursor: pointer;
           transition: background 0.2s, color 0.2s;
-          font-family: 'Syne', sans-serif;
+          font-family: 'Inter', sans-serif;
         }
         .modal-close-btn:hover {
-          background: rgba(255,255,255,0.15);
-          color: #fff;
+          background: var(--bg-card-hover);
+          color: var(--text-primary);
         }
         .modal-section-label {
           font-size: 0.6875rem;
-          color: #6b7280;
+          color: var(--text-muted);
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.08em;
           margin-bottom: 0.5rem;
         }
+        .modal-description {
+          font-size: 0.875rem;
+          color: var(--text-secondary);
+          line-height: 1.7;
+        }
+        .modal-cwe-badge {
+          padding: 4px 12px;
+          border-radius: 9999px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          background: var(--toggle-bg);
+          border: 1px solid var(--border-card);
+          color: var(--text-muted);
+        }
+        .modal-effort-box {
+          padding: 0.5rem 1rem;
+          border-radius: 0.5rem;
+          background: var(--bg-card-hover);
+          border: 1px solid var(--border-card);
+        }
+        .modal-effort-label {
+          font-size: 0.65rem;
+          color: var(--text-muted);
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          margin-bottom: 2px;
+        }
+        .modal-effort-value {
+          font-size: 0.875rem;
+          color: var(--text-primary);
+          font-weight: 700;
+        }
         .code-block {
-          background: rgba(0,0,0,0.5);
+          display: block;
+          background: var(--vuln-code-bg, rgba(0,0,0,0.4));
           border: 1px solid rgba(99,102,241,0.15);
           border-radius: 0.5rem;
           padding: 1rem;
@@ -114,11 +198,11 @@ function PRCard({ vuln, index }: PRCardProps) {
           line-height: 1.6;
         }
         .text-block {
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.07);
+          background: var(--bg-input);
+          border: 1px solid var(--border-card);
           border-radius: 0.5rem;
           padding: 1rem;
-          color: #d1d5db;
+          color: var(--text-secondary);
           font-size: 0.875rem;
           line-height: 1.7;
         }
@@ -126,8 +210,8 @@ function PRCard({ vuln, index }: PRCardProps) {
           display: flex;
           flex-direction: column;
           gap: 0.5rem;
-          background: rgba(0,0,0,0.3);
-          border: 1px solid rgba(255,255,255,0.05);
+          background: var(--bg-input);
+          border: 1px solid var(--border-card);
           border-radius: 0.5rem;
           padding: 1rem;
         }
@@ -138,8 +222,12 @@ function PRCard({ vuln, index }: PRCardProps) {
         }
         .taint-arrow {
           padding-left: 1.5rem;
-          color: #6b7280;
+          color: var(--text-muted);
           font-size: 0.875rem;
+        }
+        .taint-label {
+          font-size: 0.75rem;
+          color: var(--text-muted);
         }
       `}</style>
 
@@ -178,24 +266,10 @@ function PRCard({ vuln, index }: PRCardProps) {
               </span>
             </div>
             <div>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "#fff",
-                  lineHeight: 1.2,
-                  marginBottom: 2,
-                }}
-              >
+              <p className="pr-card-title">
                 Fix {vuln.type.replace(/_/g, " ")}
               </p>
-              <code
-                style={{
-                  fontSize: "0.7rem",
-                  color: "#6b7280",
-                  fontFamily: "JetBrains Mono, monospace",
-                }}
-              >
+              <code className="pr-card-file">
                 {vuln.file}:{vuln.line}
               </code>
             </div>
@@ -219,23 +293,8 @@ function PRCard({ vuln, index }: PRCardProps) {
 
         {/* Impact Score */}
         {impactScore !== undefined && (
-          <div
-            style={{
-              marginBottom: "0.5rem",
-              padding: "0.5rem 0.75rem",
-              borderRadius: "0.5rem",
-              background: "rgba(99,102,241,0.08)",
-              border: "1px solid rgba(99,102,241,0.15)",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <span
-              style={{ color: "#a5b4fc", fontSize: "0.7rem", fontWeight: 600 }}
-            >
-              Impact Score
-            </span>
+          <div className="pr-impact-box">
+            <span className="pr-impact-label">Impact Score</span>
             <span
               style={{
                 fontWeight: 800,
@@ -255,16 +314,7 @@ function PRCard({ vuln, index }: PRCardProps) {
 
         {/* Taint path preview */}
         {taintPath?.source && (
-          <div
-            style={{
-              fontSize: "0.7rem",
-              color: "#6b7280",
-              marginBottom: "0.5rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.25rem",
-            }}
-          >
+          <div className="pr-taint-preview">
             <span>🔍</span>
             <code
               style={{
@@ -287,21 +337,12 @@ function PRCard({ vuln, index }: PRCardProps) {
         )}
 
         {/* Remediation preview */}
-        <p
-          style={{
-            fontSize: "0.75rem",
-            color: "#6b7280",
-            lineHeight: 1.6,
-            marginBottom: "0.75rem",
-            flex: 1,
-          }}
-        >
+        <p className="pr-card-preview">
           {remediationText.length > 100
             ? remediationText.substring(0, 100) + "…"
             : remediationText}
         </p>
 
-        {/* View PR button */}
         <button className="pr-view-btn" onClick={() => setShowModal(true)}>
           View PR →
         </button>
@@ -347,23 +388,10 @@ function PRCard({ vuln, index }: PRCardProps) {
                   </span>
                 </div>
                 <div>
-                  <h2
-                    style={{
-                      color: "#fff",
-                      fontSize: "1.125rem",
-                      fontWeight: 700,
-                      lineHeight: 1.2,
-                    }}
-                  >
+                  <h2 className="modal-title">
                     Fix {vuln.type.replace(/_/g, " ")}
                   </h2>
-                  <code
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#6b7280",
-                      fontFamily: "JetBrains Mono, monospace",
-                    }}
-                  >
+                  <code className="pr-card-file">
                     {vuln.file}:{vuln.line}
                   </code>
                 </div>
@@ -376,7 +404,7 @@ function PRCard({ vuln, index }: PRCardProps) {
               </button>
             </div>
 
-            {/* Severity + Impact row */}
+            {/* Severity + CVSS + CWE badges */}
             <div
               style={{
                 display: "flex",
@@ -418,47 +446,23 @@ function PRCard({ vuln, index }: PRCardProps) {
                   CVSS {impactScore}/10
                 </span>
               )}
-              {vuln.cwe && (
-                <span
-                  style={{
-                    padding: "4px 12px",
-                    borderRadius: 9999,
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "#9ca3af",
-                  }}
-                >
-                  {vuln.cwe}
-                </span>
-              )}
+              {vuln.cwe && <span className="modal-cwe-badge">{vuln.cwe}</span>}
             </div>
 
             {/* Description */}
             <div style={{ marginBottom: "1.25rem" }}>
               <p className="modal-section-label">Description</p>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "#d1d5db",
-                  lineHeight: 1.7,
-                }}
-              >
-                {vuln.description}
-              </p>
+              <p className="modal-description">{vuln.description}</p>
             </div>
 
-            {/* Data Flow / Taint Path */}
+            {/* Data Flow */}
             {taintPath?.source && (
               <div style={{ marginBottom: "1.25rem" }}>
                 <p className="modal-section-label">🔍 Data Flow Analysis</p>
                 <div className="taint-flow">
                   <div className="taint-row">
                     <span style={{ fontSize: "1rem" }}>🟢</span>
-                    <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
-                      Source:
-                    </span>
+                    <span className="taint-label">Source:</span>
                     <code
                       style={{
                         fontSize: "0.75rem",
@@ -469,18 +473,13 @@ function PRCard({ vuln, index }: PRCardProps) {
                       {taintPath.source}
                     </code>
                   </div>
-
                   {taintPath.taintedVariables &&
                     taintPath.taintedVariables.length > 0 && (
                       <>
                         <div className="taint-arrow">↓</div>
                         <div className="taint-row">
                           <span style={{ fontSize: "1rem" }}>🟡</span>
-                          <span
-                            style={{ fontSize: "0.75rem", color: "#6b7280" }}
-                          >
-                            Tainted:
-                          </span>
+                          <span className="taint-label">Tainted:</span>
                           <code
                             style={{
                               fontSize: "0.75rem",
@@ -493,13 +492,10 @@ function PRCard({ vuln, index }: PRCardProps) {
                         </div>
                       </>
                     )}
-
                   <div className="taint-arrow">↓</div>
                   <div className="taint-row">
                     <span style={{ fontSize: "1rem" }}>🔴</span>
-                    <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>
-                      Sink:
-                    </span>
+                    <span className="taint-label">Sink:</span>
                     <code
                       style={{
                         fontSize: "0.75rem",
@@ -514,21 +510,7 @@ function PRCard({ vuln, index }: PRCardProps) {
               </div>
             )}
 
-            {/* Vulnerable code */}
-            <div style={{ marginBottom: "1.25rem" }}>
-              <p className="modal-section-label">Vulnerable Code</p>
-              <code
-                className="code-block"
-                style={{
-                  color: "#fca5a5",
-                  borderColor: "rgba(239,68,68,0.15)",
-                }}
-              >
-                {vuln.code}
-              </code>
-            </div>
-
-            {/* AI Remediation — handles code block OR plain text */}
+            {/* AI Remediation */}
             <div>
               <p className="modal-section-label">
                 {isCode
@@ -542,7 +524,7 @@ function PRCard({ vuln, index }: PRCardProps) {
               )}
             </div>
 
-            {/* Effort + Priority (if available) */}
+            {/* Effort + Priority */}
             {vuln.remediation &&
               (vuln.remediation.effort || vuln.remediation.priority) && (
                 <div
@@ -554,65 +536,17 @@ function PRCard({ vuln, index }: PRCardProps) {
                   }}
                 >
                   {vuln.remediation.priority && (
-                    <div
-                      style={{
-                        padding: "0.5rem 1rem",
-                        borderRadius: "0.5rem",
-                        background: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(255,255,255,0.07)",
-                      }}
-                    >
-                      <p
-                        style={{
-                          fontSize: "0.65rem",
-                          color: "#6b7280",
-                          fontWeight: 600,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.08em",
-                          marginBottom: 2,
-                        }}
-                      >
-                        Priority
-                      </p>
-                      <p
-                        style={{
-                          fontSize: "0.875rem",
-                          color: "#fff",
-                          fontWeight: 700,
-                        }}
-                      >
+                    <div className="modal-effort-box">
+                      <p className="modal-effort-label">Priority</p>
+                      <p className="modal-effort-value">
                         {vuln.remediation.priority}
                       </p>
                     </div>
                   )}
                   {vuln.remediation.effort && (
-                    <div
-                      style={{
-                        padding: "0.5rem 1rem",
-                        borderRadius: "0.5rem",
-                        background: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(255,255,255,0.07)",
-                      }}
-                    >
-                      <p
-                        style={{
-                          fontSize: "0.65rem",
-                          color: "#6b7280",
-                          fontWeight: 600,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.08em",
-                          marginBottom: 2,
-                        }}
-                      >
-                        Effort
-                      </p>
-                      <p
-                        style={{
-                          fontSize: "0.875rem",
-                          color: "#fff",
-                          fontWeight: 700,
-                        }}
-                      >
+                    <div className="modal-effort-box">
+                      <p className="modal-effort-label">Effort</p>
+                      <p className="modal-effort-value">
                         {vuln.remediation.effort}
                       </p>
                     </div>
@@ -654,7 +588,7 @@ export default function PRCards({
               background: "none",
               border: "none",
               cursor: "pointer",
-              fontFamily: "Syne, sans-serif",
+              fontFamily: "Inter, sans-serif",
             }}
           >
             View all →

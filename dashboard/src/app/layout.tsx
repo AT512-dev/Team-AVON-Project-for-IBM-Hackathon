@@ -1,11 +1,3 @@
-import type { Metadata } from "next";
-import "./globals.css";
-
-export const metadata: Metadata = {
-  title: "CodeGuard | Security Audit Dashboard",
-  description: "One-click AI-powered security auditing for your codebase",
-};
-
 export default function RootLayout({
   children,
 }: {
@@ -13,7 +5,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body suppressHydrationWarning={true}>{children}</body>
+      <head />
+      <body suppressHydrationWarning>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('theme');
+                if (theme === 'light') {
+                  document.body.classList.add('light');
+                }
+              } catch(e) {}
+            `,
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

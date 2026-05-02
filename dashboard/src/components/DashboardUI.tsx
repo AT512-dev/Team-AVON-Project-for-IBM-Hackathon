@@ -29,16 +29,23 @@ export default function DashboardUI() {
   const [lastAudit, setLastAudit] = useState<string | null>(null);
   const [apiStatus, setApiStatus] = useState<ApiStatus>("checking");
 
+  // ── Theme state — read localStorage before first render to avoid flash ──
   // ── Theme state ──────────────────────────────────────────────────
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState<boolean | null>(null);
+
+  // ── Read theme from localStorage after mount ─────────────────────
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    const dark = saved !== "light";
+    setIsDark(dark);
+    document.body.classList.toggle("light", !dark);
+  }, []);
 
   const toggleTheme = useCallback(() => {
     setIsDark((prev) => {
       const next = !prev;
-      // Also update <body> class so globals.css background syncs
-      if (typeof document !== "undefined") {
-        document.body.classList.toggle("light", !next);
-      }
+      document.body.classList.toggle("light", !next);
+      localStorage.setItem("theme", next ? "dark" : "light");
       return next;
     });
   }, []);
@@ -48,7 +55,7 @@ export default function DashboardUI() {
     const check = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/health`,
+          `${process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3001"}/health`,
         );
         setApiStatus(res.ok ? "online" : "offline");
       } catch {
@@ -124,14 +131,18 @@ router.get('/user/:id', (req, res) => {
   const beforeScore = 100 - summary.total * 8;
   const afterScore = auditData?.overallScore ?? 92;
 
+  // ── Before the return, add this ──────────────────────────────────
+  if (isDark === null) return null;
+
   return (
     <>
       <style>{GLOBAL_STYLES}</style>
 
-      {/* Pass isDark as class to root — all CSS variables switch automatically */}
       <div className={`dashboard-root ${isDark ? "" : "light"}`}>
-        <div className="content">
-          {/* 1. Navbar — receives toggle props */}
+        <div
+          className="content"
+          style={{ maxWidth: "1400px", margin: "0 auto", width: "100%" }}
+        >
           <Navbar
             apiStatus={apiStatus}
             auditData={auditData}
@@ -139,7 +150,6 @@ router.get('/user/:id', (req, res) => {
             onToggleTheme={toggleTheme}
           />
 
-          {/* 2. Hero */}
           <Hero
             loading={loading}
             hasData={!!auditData}
@@ -150,19 +160,16 @@ router.get('/user/:id', (req, res) => {
           />
 
           <div className="main-grid">
-            {/* 3. Error banner */}
             {error && <ErrorBanner message={error} />}
 
             {auditData ? (
               <>
-                {/* 4. Metric cards */}
                 <MetricsRow
                   auditData={auditData}
                   metrics={metrics}
                   beforeScore={beforeScore}
                 />
 
-                {/* 5. Score rings + Severity breakdown */}
                 <div className="split-row">
                   <ScoreComparison
                     beforeScore={beforeScore}
@@ -171,13 +178,11 @@ router.get('/user/:id', (req, res) => {
                   <SeverityBreakdown summary={summary} impact={impact} />
                 </div>
 
-                {/* 6. Vulnerabilities table */}
                 <VulnerabilitiesTable
                   vulnerabilities={vulnerabilities}
                   total={summary.total}
                 />
 
-                {/* 7. PR cards */}
                 {vulnerabilities.length > 0 && (
                   <PRCards vulnerabilities={vulnerabilities} />
                 )}
