@@ -82,6 +82,15 @@ export interface ApiResponse {
   success: boolean;
   data: AuditData;
   note?: string;
+  mode?: "demo" | "live";
+  message?: string;
+  error?: string;
+}
+
+export interface UnifiedScanOptions {
+  isDemoMode: boolean;
+  repoUrl?: string;
+  includeRemediation?: boolean;
 }
 
 export interface MetricsData {
@@ -301,7 +310,47 @@ export async function checkHealth() {
   return res.json();
 }
 
-// Run audit - uses BASE_URL (with /api/v1)
+/**
+ * UNIFIED SCAN — routes to Demo or Live mode on the backend.
+ *
+ * Demo:  POST /api/v1/scan  { isDemoMode: true }
+ * Live:  POST /api/v1/scan  { isDemoMode: false, repoUrl, includeRemediation }
+ *
+ * Live mode clones the repo, reads real files, and sends them to
+ * IBM WatsonX granite-13b-chat-v2 for AI-powered vulnerability analysis.
+ * No mock data is used in the live path.
+ */
+export async function runUnifiedScan(
+  opts: UnifiedScanOptions,
+): Promise<ApiResponse> {
+  const res = await fetch(`${BASE_URL}/scan`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      isDemoMode: opts.isDemoMode,
+      isLive:     !opts.isDemoMode,          // explicit live flag the new engine checks
+      repoUrl:    opts.repoUrl ?? "",
+      includeRemediation: opts.includeRemediation ?? false,
+    }),
+  });
+
+  const json = await res.json();
+
+  // Backend returns { success, mode, data, message } or { success, error, message }
+  if (!res.ok || !json.success) {
+    // Surface the real backend error message to the UI
+    const errorMsg =
+      json.message ||
+      json.error ||
+      `Server responded with ${res.status}`;
+    throw new Error(errorMsg);
+  }
+
+  if (json.data) json.data = transformAuditResponse(json.data);
+  return json;
+}
+
+// Run audit - legacy endpoint (kept for backward compatibility)
 export async function runAudit(files: FileInput[]): Promise<ApiResponse> {
   const res = await fetch(`${BASE_URL}/audit`, {
     method: "POST",
@@ -313,7 +362,7 @@ export async function runAudit(files: FileInput[]): Promise<ApiResponse> {
   return json;
 }
 
-// Run audit with remediation - uses BASE_URL (with /api/v1)
+// Run audit with remediation - legacy endpoint
 export async function runAuditWithRemediation(
   files: FileInput[],
 ): Promise<ApiResponse> {
