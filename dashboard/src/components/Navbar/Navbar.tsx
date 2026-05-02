@@ -1,6 +1,7 @@
 "use client";
 
 import { type AuditData } from "../../lib/api";
+import { downloadReport } from "../../lib/report";
 
 export type ApiStatus = "online" | "offline" | "checking";
 
@@ -13,9 +14,18 @@ interface NavbarProps {
 
 export default function Navbar({
   apiStatus,
+  auditData,
   isDark,
   onToggleTheme,
 }: NavbarProps) {
+  const handleReportClick = () => {
+    if (!auditData) {
+      alert("Run a scan first to generate a report.");
+      return;
+    }
+    downloadReport(auditData);
+  };
+
   return (
     <>
       <style>{`
@@ -52,9 +62,14 @@ export default function Navbar({
           text-decoration: none;
           transition: color 0.2s;
           cursor: pointer;
+          background: none;
+          border: none;
+          font-family: inherit;
+          padding: 0;
         }
         .nav-link:hover { color: var(--text-primary); }
         .nav-link.active { color: #6366f1; }
+        .nav-link.disabled { opacity: 0.4; cursor: not-allowed; }
         .api-dot {
           width: 7px; height: 7px;
           border-radius: 50%;
@@ -94,7 +109,13 @@ export default function Navbar({
           <span className="logo">⬡ CodeGuard</span>
           <div className="nav-links">
             <span className="nav-link active">Dashboard</span>
-            <span className="nav-link">Reports</span>
+            <button
+              className={`nav-link ${!auditData ? "disabled" : ""}`}
+              onClick={handleReportClick}
+              title={!auditData ? "Run a scan first" : "Download JSON report"}
+            >
+              Reports
+            </button>
             <span className="nav-link">Settings</span>
           </div>
         </div>
@@ -106,7 +127,6 @@ export default function Navbar({
             API {apiStatus}
           </div>
 
-          {/* ── Theme toggle ── */}
           <button
             className="theme-toggle"
             onClick={onToggleTheme}
@@ -118,7 +138,6 @@ export default function Navbar({
             </span>
           </button>
 
-          {/* Avatar */}
           <div className="user-avatar">
             <span
               className="material-symbols-outlined"

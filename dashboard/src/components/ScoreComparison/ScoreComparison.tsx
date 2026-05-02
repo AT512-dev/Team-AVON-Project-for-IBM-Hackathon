@@ -30,7 +30,7 @@ function ScoreRing({ score, label, color }: ScoreRingProps) {
             cy="64"
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.06)"
+            className="ring-track"
             strokeWidth="10"
           />
           <circle
@@ -62,7 +62,7 @@ function ScoreRing({ score, label, color }: ScoreRingProps) {
               style={{
                 fontSize: "0.875rem",
                 fontWeight: 400,
-                color: "#9ca3af",
+                color: "var(--ring-label)",
               }}
             >
               %
@@ -70,17 +70,7 @@ function ScoreRing({ score, label, color }: ScoreRingProps) {
           </span>
         </div>
       </div>
-      <span
-        style={{
-          fontSize: "0.75rem",
-          fontWeight: 600,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "#9ca3af",
-        }}
-      >
-        {label}
-      </span>
+      <span className="ring-label">{label}</span>
     </div>
   );
 }
@@ -112,14 +102,7 @@ export default function ScoreComparison({
           label="Before"
           color="#ef4444"
         />
-        <div
-          style={{
-            width: 1,
-            height: 80,
-            background:
-              "linear-gradient(to bottom, transparent, rgba(255,255,255,0.1), transparent)",
-          }}
-        />
+        <div className="ring-divider" />
         <ScoreRing score={afterScore} label="After" color="#10b981" />
       </div>
     </div>
