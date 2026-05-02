@@ -1,5 +1,8 @@
 const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+const SERVER_URL = process.env.NEXT_PUBLIC_API_URL
+  ? process.env.NEXT_PUBLIC_API_URL.replace("/api/v1", "")
+  : "http://localhost:3001";
 
 export interface FileInput {
   file: string;
@@ -292,13 +295,15 @@ function transformAuditResponse(backendData: any): AuditData {
 
 // ── API calls ─────────────────────────────────────────────────────────────────
 
+// Health check - uses SERVER_URL (without /api/v1)
 export async function checkHealth() {
-  const res = await fetch(`${BASE_URL}/health`);
+  const res = await fetch(`${SERVER_URL}/health`);
   return res.json();
 }
 
+// Run audit - uses BASE_URL (with /api/v1)
 export async function runAudit(files: FileInput[]): Promise<ApiResponse> {
-  const res = await fetch(`${BASE_URL}/api/v1/audit`, {
+  const res = await fetch(`${BASE_URL}/audit`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ files }),
@@ -308,10 +313,11 @@ export async function runAudit(files: FileInput[]): Promise<ApiResponse> {
   return json;
 }
 
+// Run audit with remediation - uses BASE_URL (with /api/v1)
 export async function runAuditWithRemediation(
   files: FileInput[],
 ): Promise<ApiResponse> {
-  const res = await fetch(`${BASE_URL}/api/v1/audit/remediation`, {
+  const res = await fetch(`${BASE_URL}/audit/remediation`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ files }),
@@ -321,22 +327,27 @@ export async function runAuditWithRemediation(
   return json;
 }
 
+// Get demo audit - uses BASE_URL (with /api/v1)
 export async function getDemoAudit(): Promise<ApiResponse> {
-  const res = await fetch(`${BASE_URL}/api/v1/demo`);
+  const res = await fetch(`${BASE_URL}/demo`);
   const json = await res.json();
   if (json.success && json.data) json.data = transformAuditResponse(json.data);
   return json;
 }
 
+// Get vulnerabilities by severity - uses BASE_URL (with /api/v1)
 export async function getVulnerabilities(severity: string) {
-  const res = await fetch(`${BASE_URL}/api/v1/vulnerabilities/${severity}`);
+  const res = await fetch(`${BASE_URL}/vulnerabilities/${severity}`);
   return res.json();
 }
 
+// Get metrics - uses BASE_URL (with /api/v1)
 export async function getMetrics(): Promise<{
   success: boolean;
   data: MetricsData;
 }> {
-  const res = await fetch(`${BASE_URL}/api/v1/metrics`);
+  const res = await fetch(`${BASE_URL}/metrics`);
   return res.json();
 }
+
+// Made with Bob
