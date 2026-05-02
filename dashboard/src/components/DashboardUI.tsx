@@ -10,7 +10,8 @@ import {
 } from "../lib/api";
 import { GLOBAL_STYLES } from "./styles";
 
-import Navbar, { type ApiStatus } from "./Navbar/Navbar";
+import Sidebar from "./Sidebar/Sidebar";
+import TopNavbar, { type ApiStatus } from "./TopNavbar/TopNavbar";
 import Hero, { type ScanMode } from "./Hero/Hero";
 import ErrorBanner from "./ErrorBanner/ErrorBanner";
 import MetricsRow from "./MetricsRow/MetricsRow";
@@ -20,6 +21,8 @@ import VulnerabilitiesTable from "./VulnerabilitiesTable/VulnerabilitiesTable";
 import PRCards from "./PRCards/PRCards";
 import EmptyState from "./EmptyState/EmptyState";
 
+export type ActiveView = "dashboard" | "vulnerabilities" | "generated-prs";
+
 export default function DashboardUI() {
   const [loading, setLoading] = useState(false);
   const [auditData, setAuditData] = useState<AuditData | null>(null);
@@ -28,12 +31,11 @@ export default function DashboardUI() {
   const [scanMode, setScanMode] = useState<ScanMode>("demo");
   const [lastAudit, setLastAudit] = useState<string | null>(null);
   const [apiStatus, setApiStatus] = useState<ApiStatus>("checking");
+  const [activeView, setActiveView] = useState<ActiveView>("dashboard");
 
-  // ── Theme state — read localStorage before first render to avoid flash ──
   // ── Theme state ──────────────────────────────────────────────────
   const [isDark, setIsDark] = useState<boolean | null>(null);
 
-  // ── Read theme from localStorage after mount ─────────────────────
   useEffect(() => {
     const saved = localStorage.getItem("theme");
     const dark = saved !== "light";
@@ -127,69 +129,147 @@ router.get('/user/:id', (req, res) => {
   };
   const vulnerabilities = auditData?.vulnerabilities ?? [];
 
-  // ── Derived values ────────────────────────────────────────────────
   const beforeScore = 100 - summary.total * 8;
   const afterScore = auditData?.overallScore ?? 92;
 
-  // ── Before the return, add this ──────────────────────────────────
   if (isDark === null) return null;
 
   return (
     <>
-      <style>{GLOBAL_STYLES}</style>
+      <style>{`
+        ${GLOBAL_STYLES}
+        .app-shell {
+          display: flex;
+          height: 100vh;
+          overflow: hidden;
+        }
+        .main-area {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          min-width: 0;
+        }
+        .page-content {
+          flex: 1;
+          overflow-y: auto;
+          position: relative;
+        }
+        .page-content-inner {
+          max-width: 1400px;
+          margin: 0 auto;
+          padding: 2rem 2rem 4rem;
+        }
+      `}</style>
 
       <div className={`dashboard-root ${isDark ? "" : "light"}`}>
-        <div
-          className="content"
-          style={{ maxWidth: "1400px", margin: "0 auto", width: "100%" }}
-        >
-          <Navbar
-            apiStatus={apiStatus}
-            auditData={auditData}
+        <div className="app-shell">
+          {/* ── Sidebar ── */}
+          <Sidebar
+            activeView={activeView}
+            onViewChange={setActiveView}
             isDark={isDark}
-            onToggleTheme={toggleTheme}
-          />
-
-          <Hero
-            loading={loading}
-            hasData={!!auditData}
-            scanMode={scanMode}
-            lastAudit={lastAudit}
             onRunAudit={handleRunAudit}
+            loading={loading}
+            scanMode={scanMode}
             onScanModeChange={setScanMode}
+            hasData={!!auditData}
           />
 
-          <div className="main-grid">
-            {error && <ErrorBanner message={error} />}
+          {/* ── Main area ── */}
+          <div className="main-area">
+            {/* ── Top Navbar ── */}
+            <TopNavbar
+              apiStatus={apiStatus}
+              auditData={auditData}
+              isDark={isDark}
+              onToggleTheme={toggleTheme}
+            />
 
-            {auditData ? (
-              <>
-                <MetricsRow
-                  auditData={auditData}
-                  metrics={metrics}
-                  beforeScore={beforeScore}
-                />
-
-                <div className="split-row">
-                  <ScoreComparison
-                    beforeScore={beforeScore}
-                    afterScore={afterScore}
+            {/* ── Page content ── */}
+            <div className="page-content">
+              <div className="page-content-inner">
+                {/* Show Hero only if no audit data yet */}
+                {!auditData && (
+                  <Hero
+                    loading={loading}
+                    hasData={!!auditData}
+                    scanMode={scanMode}
+                    lastAudit={lastAudit}
+                    onRunAudit={handleRunAudit}
+                    onScanModeChange={setScanMode}
                   />
-                  <SeverityBreakdown summary={summary} impact={impact} />
-                </div>
-
-                <VulnerabilitiesTable
-                  vulnerabilities={vulnerabilities}
-                  total={summary.total}
-                />
-
-                {vulnerabilities.length > 0 && (
-                  <PRCards vulnerabilities={vulnerabilities} />
                 )}
-              </>
-            ) : (
-              !loading && <EmptyState />
-            )}
+
+                <div className="main-grid" style={{ padding: 0 }}>
+                  {error && <ErrorBanner message={error} />}
+
+                  {auditData ? (
+                    <>
+                      {/* Dashboard view - show only metrics and charts */}
+                      {activeView === "dashboard" && (
+                        <>
+                          <MetricsRow
+                            auditData={auditData}
+                            metrics={metrics}
+                            beforeScore={beforeScore}
+                          />
+
+                          <div className="split-row">
+                            <ScoreComparison
+                              beforeScore={beforeScore}
+                              afterScore={afterScore}
+                            />
+                            <SeverityBreakdown
+                              summary={summary}
+                              impact={impact}
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Vulnerabilities view - show only table */}
+                      {activeView === "vulnerabilities" && (
+                        <VulnerabilitiesTable
+                          vulnerabilities={vulnerabilities}
+                          total={summary.total}
+                        />
+                      )}
+
+                      {/* Generated PRs view - show only PR cards */}
+                      {activeView === "generated-prs" &&
+                        vulnerabilities.length > 0 && (
+                          <PRCards vulnerabilities={vulnerabilities} />
+                        )}
+
+                      {/* Empty state for PRs if no vulnerabilities */}
+                      {activeView === "generated-prs" &&
+                        vulnerabilities.length === 0 && (
+                          <div
+                            style={{
+                              padding: "4rem 2rem",
+                              textAlign: "center",
+                              color: "var(--text-muted)",
+                            }}
+                          >
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ fontSize: 48, opacity: 0.3 }}
+                            >
+                              code_off
+                            </span>
+                            <p style={{ marginTop: "1rem" }}>
+                              No vulnerabilities found. No PRs to generate.
+                            </p>
+                          </div>
+                        )}
+                    </>
+                  ) : (
+                    !loading && <EmptyState />
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
