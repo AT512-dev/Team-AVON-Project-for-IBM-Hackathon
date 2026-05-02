@@ -68,6 +68,10 @@ router.get('/user/:id', (req, res) => {
             ]);
 
       console.log("AUDIT RESULT:", result); // 🔥 debug
+      console.log(
+        "FIRST VULN RAW:",
+        JSON.stringify(result.data.vulnerabilities[0], null, 2),
+      );
 
       if (result?.success && result?.data) {
         setAuditData(result.data);
