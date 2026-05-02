@@ -3,7 +3,7 @@ const { calculateImpact } = require("../../security_rules/impact");
 const { formatResponse } = require("./formatResponse");
 const { generateRemediationPlan } = require("./remediation");
 
-async function runAuditWithRemediation(repoFiles) {
+function runAuditWithRemediation(repoFiles) {
   const vulnerabilities = scanFiles(repoFiles);
   const impact = calculateImpact(vulnerabilities);
   const baseResponse = formatResponse(vulnerabilities, impact);

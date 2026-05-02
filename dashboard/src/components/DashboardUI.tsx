@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  runUnifiedScan,
+  getDemoAudit,
+  runAudit,
   getMetrics,
   type AuditData,
   type MetricsData,
@@ -73,34 +74,22 @@ export default function DashboardUI() {
     setError(null);
 
     try {
-      const isDemo = scanMode === "demo";
-
-      // Live mode: validate URL before hitting the backend
-      if (!isDemo) {
-        if (!repoUrl || !repoUrl.trim()) {
-          setError(
-            "Live mode requires a repository URL. Enter a GitHub or GitLab URL above.",
-          );
-          setLoading(false);
-          return;
-        }
-        const urlPattern =
-          /^https:\/\/(github\.com|gitlab\.com|bitbucket\.org)\//i;
-        if (!urlPattern.test(repoUrl.trim())) {
-          setError(
-            "Invalid URL. Please enter a valid GitHub, GitLab, or Bitbucket HTTPS repository URL.",
-          );
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Route to the correct backend path via the unified /api/v1/scan endpoint
-      const result = await runUnifiedScan({
-        isDemoMode: isDemo,
-        repoUrl: isDemo ? undefined : repoUrl.trim(),
-        includeRemediation: false,
-      });
+      const result =
+        scanMode === "demo" || apiStatus === "offline"
+          ? await getDemoAudit()
+          : await runAudit([
+              {
+                file: "routes/user.js",
+                content: `const express = require('express');
+const db = require('./db');
+router.get('/user/:id', (req, res) => {
+  const userId = req.params.id;
+  db.query(\`SELECT * FROM users WHERE id = '\${userId}'\`, (err, rows) => {
+    res.json(rows);
+  });
+});`,
+              },
+            ]);
 
       if (result?.success && result?.data) {
         setAuditData(result.data);
@@ -114,18 +103,15 @@ export default function DashboardUI() {
       } else {
         setError("Audit failed. Please try again.");
       }
-    } catch (err: unknown) {
+    } catch (err) {
       console.error(err);
-      // Surface the real backend error (clone failure, invalid URL, etc.)
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Cannot reach API. Switch to Demo mode or check backend server.";
-      setError(message);
+      setError(
+        "Cannot reach API. Switch to Demo mode or check backend server.",
+      );
     } finally {
       setLoading(false);
     }
-  }, [scanMode, repoUrl, apiStatus]);
+  }, [scanMode, apiStatus]);
 
   // ── Safe data normalization ──────────────────────────────────────
   const summary = auditData?.summary ?? {
