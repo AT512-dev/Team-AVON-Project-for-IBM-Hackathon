@@ -13,20 +13,20 @@ function CVSSBadge({ score }: { score?: number }) {
 
   let color = "#6b7280";
   let bg = "rgba(107,114,128,0.1)";
-  let label = "LOW";
+  // let label = "LOW";
 
   if (score >= 9.0) {
     color = "#ef4444";
     bg = "rgba(239,68,68,0.1)";
-    label = "CRITICAL";
+    // label = "CRITICAL";
   } else if (score >= 7.0) {
     color = "#f97316";
     bg = "rgba(249,115,22,0.1)";
-    label = "HIGH";
+    // label = "HIGH";
   } else if (score >= 4.0) {
     color = "#eab308";
     bg = "rgba(234,179,8,0.1)";
-    label = "MEDIUM";
+    // label = "MEDIUM";
   }
 
   return (
@@ -42,7 +42,7 @@ function CVSSBadge({ score }: { score?: number }) {
         border: `1px solid ${color}33`,
       }}
     >
-      {label} {score.toFixed(1)}
+      {score.toFixed(1)}
     </span>
   );
 }
@@ -228,7 +228,7 @@ function VulnRow({
                 gap: "1rem",
               }}
             >
-              <div>
+              {/* <div>
                 <div
                   style={{
                     display: "flex",
@@ -271,7 +271,7 @@ function VulnRow({
                 >
                   {vuln.code}
                 </code>
-              </div>
+              </div> */}
               <div
                 style={{
                   display: "flex",
@@ -749,7 +749,7 @@ export default function VulnerabilitiesTable({
                     className={`sortable ${sortField === "cvss" ? `sorted-${sortDirection}` : ""}`}
                     onClick={() => handleSort("cvss")}
                   >
-                    CVSS Score
+                    CVSS
                   </th>
                   <th
                     className={`sortable ${sortField === "confidence" ? `sorted-${sortDirection}` : ""}`}
