@@ -16,20 +16,33 @@ const axios = require('axios');
  */
 class IBMWatsonXClient {
   constructor() {
-    this.apiKey = process.env.IBM_CLOUD_API_KEY;
+    this.apiKey    = process.env.IBM_CLOUD_API_KEY;
     this.projectId = process.env.WATSONX_PROJECT_ID;
-    this.url = process.env.IBM_CLOUD_URL || 'https://us-south.ml.cloud.ibm.com';
-    this.modelId = process.env.MODEL_ID || 'ibm/granite-13b-chat-v2';
+    this.url       = process.env.IBM_CLOUD_URL || 'https://us-south.ml.cloud.ibm.com';
+    this.modelId   = process.env.MODEL_ID || 'ibm/granite-13b-chat-v2';
     this.accessToken = null;
     this.tokenExpiry = null;
 
-    // FAIL-FAST: Check for required API key at initialization
+    // ── STARTUP VALIDATION ─────────────────────────────────────────────────
+    // Validate apiKey and projectId on server startup — fail fast if missing.
+    console.log('[IBM] ── Credential Validation ──────────────────────────');
+
     if (!this.apiKey) {
-      console.error('[IBM] FATAL ERROR: IBM_CLOUD_API_KEY is not set in environment variables');
-      console.error('[IBM] Please set IBM_CLOUD_API_KEY in your .env file');
-      console.error('[IBM] Example: IBM_CLOUD_API_KEY=your_api_key_here');
+      console.error('[IBM] ✗ FATAL: IBM_CLOUD_API_KEY is not set');
+      console.error('[IBM]   Set it in engine/.env: IBM_CLOUD_API_KEY=your_key_here');
       process.exit(1);
     }
+    console.log(`[IBM] ✓ API Key: ${this.apiKey.slice(0, 12)}…${this.apiKey.slice(-4)} (${this.apiKey.length} chars)`);
+
+    if (!this.projectId) {
+      console.error('[IBM] ✗ FATAL: WATSONX_PROJECT_ID is not set');
+      console.error('[IBM]   Set it in engine/.env: WATSONX_PROJECT_ID=your_project_id');
+      process.exit(1);
+    }
+    console.log(`[IBM] ✓ Project ID: ${this.projectId}`);
+    console.log(`[IBM] ✓ Model: ${this.modelId}`);
+    console.log(`[IBM] ✓ Region: ${this.url}`);
+    console.log('[IBM] ──────────────────────────────────────────────────\n');
   }
 
   /**
@@ -140,6 +153,61 @@ class IBMWatsonXClient {
     } catch (error) {
       console.error('[IBM] Connection test failed:', error.message);
       return false;
+    }
+  }
+
+  /**
+   * ═══════════════════════════════════════════════════════════════════════════
+   * HEARTBEAT — "Reflector" diagnostic test
+   * ═══════════════════════════════════════════════════════════════════════════
+   *
+   * Sends a hidden string to WatsonX and checks that the response contains
+   * the expected echo. This proves:
+   *   1. The API key is valid (IAM auth succeeds)
+   *   2. The project ID is correct (model can be invoked)
+   *   3. The granite-13b-chat-v2 model is responding
+   *   4. Network connectivity to IBM Cloud is live
+   *
+   * @param {string} [codeSnippet] - Optional: first 10 chars of real code to echo
+   * @returns {Promise<{alive: boolean, latencyMs: number, echoMatch: boolean, raw: string}>}
+   */
+  async heartbeat(codeSnippet) {
+    const ECHO_WORD = 'READY';
+    const snippetPart = codeSnippet
+      ? ` and the first 10 characters of the code provided: "${codeSnippet.slice(0, 10)}"`
+      : '';
+
+    const reflectorPrompt =
+      `Respond with the word '${ECHO_WORD}'${snippetPart}. ` +
+      `Do not add any other text. Only respond with the exact word(s) requested.`;
+
+    console.log('[HEARTBEAT] ── WatsonX Diagnostic ─────────────────────');
+    console.log(`[HEARTBEAT] Reflector prompt: "${reflectorPrompt}"`);
+
+    const t0 = Date.now();
+
+    try {
+      const response = await this.scan({
+        prompt: reflectorPrompt,
+        options: { max_tokens: 50, temperature: 0 }
+      });
+
+      const latencyMs = Date.now() - t0;
+      const rawText   = typeof response.data === 'string' ? response.data : '';
+
+      const alive     = response.success === true;
+      const echoMatch = rawText.toUpperCase().includes(ECHO_WORD);
+
+      console.log(`[HEARTBEAT] Response (${latencyMs}ms): "${rawText.trim().slice(0, 120)}"`);
+      console.log(`[HEARTBEAT] Alive: ${alive}  |  Echo match: ${echoMatch}  |  Model: ${this.modelId}`);
+      console.log('[HEARTBEAT] ────────────────────────────────────────────\n');
+
+      return { alive, latencyMs, echoMatch, raw: rawText };
+    } catch (err) {
+      const latencyMs = Date.now() - t0;
+      console.error(`[HEARTBEAT] ✗ FAILED (${latencyMs}ms): ${err.message}`);
+      console.log('[HEARTBEAT] ────────────────────────────────────────────\n');
+      return { alive: false, latencyMs, echoMatch: false, raw: '', error: err.message };
     }
   }
 }
