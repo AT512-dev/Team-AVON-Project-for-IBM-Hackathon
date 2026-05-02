@@ -11,4 +11,10 @@
 html,
 body {
   background: #050508;
+  transition: background 0.3s ease;
+}
+
+/* When light mode is active, update body background too */
+body.light {
+  background: #f8fafc;
 }
