@@ -22,6 +22,14 @@ class IBMWatsonXClient {
     this.modelId = process.env.MODEL_ID || 'ibm/granite-13b-chat-v2';
     this.accessToken = null;
     this.tokenExpiry = null;
+
+    // FAIL-FAST: Check for required API key at initialization
+    if (!this.apiKey) {
+      console.error('[IBM] FATAL ERROR: IBM_CLOUD_API_KEY is not set in environment variables');
+      console.error('[IBM] Please set IBM_CLOUD_API_KEY in your .env file');
+      console.error('[IBM] Example: IBM_CLOUD_API_KEY=your_api_key_here');
+      process.exit(1);
+    }
   }
 
   /**

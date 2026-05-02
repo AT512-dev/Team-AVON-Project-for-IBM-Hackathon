@@ -162,14 +162,26 @@ class BobOrchestrator {
    * @returns {Object} Remediation plan
    */
   async generateRemediationStrategy(vulnerabilities, repoFiles) {
-    this.log('generateRemediationStrategy', { 
-      vulnerabilityCount: vulnerabilities.length 
+    this.log('generateRemediationStrategy', {
+      vulnerabilityCount: vulnerabilities.length
     });
 
-    // Prioritize critical vulnerabilities for remediation
-    const criticalVulns = vulnerabilities
+    // Prioritize critical vulnerabilities for remediation with fallback
+    let criticalVulns = vulnerabilities
       .filter(v => v.severity === 'CRITICAL' || v.severity === 'HIGH')
       .slice(0, 5); // Focus on top 5 for token efficiency
+
+    // FALLBACK: If no CRITICAL/HIGH vulnerabilities, try MEDIUM
+    if (criticalVulns.length === 0) {
+      criticalVulns = vulnerabilities
+        .filter(v => v.severity === 'MEDIUM')
+        .slice(0, 5);
+    }
+
+    // FALLBACK: If still empty, use all vulnerabilities
+    if (criticalVulns.length === 0) {
+      criticalVulns = vulnerabilities.slice(0, 5);
+    }
 
     const prompt = buildPrompt(PROMPTS.REMEDIATION_STRATEGY, {
       vulnerabilities: JSON.stringify(criticalVulns, null, 2),

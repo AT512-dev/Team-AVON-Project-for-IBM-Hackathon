@@ -263,6 +263,43 @@ describe('Bob Orchestrator', () => {
       expect(callArgs.context.vulnerabilities).toHaveLength(2); // Only CRITICAL and HIGH
     });
 
+    test('should fallback to MEDIUM severity when no CRITICAL/HIGH exist', async () => {
+      const mediumOnlyVulns = [
+        { severity: 'MEDIUM', type: 'WEAK_CRYPTO' },
+        { severity: 'MEDIUM', type: 'INFO_DISCLOSURE' },
+        { severity: 'LOW', type: 'MINOR_ISSUE' }
+      ];
+      mockBobClient.scan.mockResolvedValue({ fixes: [] });
+
+      await orchestrator.generateRemediationStrategy(mediumOnlyVulns, mockRepoFiles);
+
+      const callArgs = mockBobClient.scan.mock.calls[0][0];
+      expect(callArgs.context.vulnerabilities).toHaveLength(2); // Only MEDIUM vulnerabilities
+      expect(callArgs.context.vulnerabilities.every(v => v.severity === 'MEDIUM')).toBe(true);
+    });
+
+    test('should fallback to all vulnerabilities when no CRITICAL/HIGH/MEDIUM exist', async () => {
+      const lowOnlyVulns = [
+        { severity: 'LOW', type: 'MINOR_ISSUE' },
+        { severity: 'INFO', type: 'INFORMATIONAL' }
+      ];
+      mockBobClient.scan.mockResolvedValue({ fixes: [] });
+
+      await orchestrator.generateRemediationStrategy(lowOnlyVulns, mockRepoFiles);
+
+      const callArgs = mockBobClient.scan.mock.calls[0][0];
+      expect(callArgs.context.vulnerabilities).toHaveLength(2); // All vulnerabilities
+    });
+
+    test('should handle empty vulnerability array gracefully', async () => {
+      mockBobClient.scan.mockResolvedValue({ fixes: [] });
+
+      await orchestrator.generateRemediationStrategy([], mockRepoFiles);
+
+      const callArgs = mockBobClient.scan.mock.calls[0][0];
+      expect(callArgs.context.vulnerabilities).toHaveLength(0);
+    });
+
     test('should store remediation in context', async () => {
       const mockRemediation = { fixes: [{ priority: 1 }] };
       mockBobClient.scan.mockResolvedValue(mockRemediation);
