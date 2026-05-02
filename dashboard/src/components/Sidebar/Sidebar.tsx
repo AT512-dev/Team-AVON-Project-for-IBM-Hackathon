@@ -25,6 +25,8 @@ interface SidebarProps {
   scanMode: ScanMode;
   onScanModeChange: (mode: ScanMode) => void;
   hasData: boolean;
+  repoUrl: string;
+  onRepoUrlChange: (url: string) => void;
 }
 
 export default function Sidebar({
@@ -36,6 +38,8 @@ export default function Sidebar({
   scanMode,
   onScanModeChange,
   hasData,
+  repoUrl,
+  onRepoUrlChange,
 }: SidebarProps) {
   return (
     <>
@@ -108,6 +112,55 @@ export default function Sidebar({
         }
         .sidebar-mode-btn.inactive:hover {
           color: ${isDark ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.7)"};
+        }
+        .sidebar-repo-input {
+          margin: 0 1.5rem 1rem;
+          position: relative;
+        }
+        .sidebar-repo-label {
+          font-size: 0.7rem;
+          font-weight: 600;
+          color: ${isDark ? "rgba(255,255,255,0.6)" : "rgba(30,41,59,0.6)"};
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 0.5rem;
+          display: block;
+        }
+        .sidebar-repo-input-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          background: ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)"};
+          border: 1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"};
+          border-radius: 10px;
+          padding: 0.5rem 0.75rem;
+          transition: border-color 0.2s;
+        }
+        .sidebar-repo-input-wrapper:focus-within {
+          border-color: #6366f1;
+        }
+        .sidebar-repo-input-wrapper .material-symbols-outlined {
+          font-size: 16px;
+          color: ${isDark ? "rgba(255,255,255,0.5)" : "rgba(30,41,59,0.5)"};
+          margin-right: 0.5rem;
+          flex-shrink: 0;
+        }
+        .sidebar-repo-input-wrapper input {
+          flex: 1;
+          background: transparent;
+          border: none;
+          outline: none;
+          color: ${isDark ? "rgba(255,255,255,0.9)" : "rgba(30,41,59,0.9)"};
+          font-size: 0.75rem;
+          font-family: 'Inter', sans-serif;
+          width: 100%;
+        }
+        .sidebar-repo-input-wrapper input::placeholder {
+          color: ${isDark ? "rgba(255,255,255,0.4)" : "rgba(30,41,59,0.4)"};
+        }
+        .sidebar-repo-input-wrapper input:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
         .sidebar-nav {
           display: flex;
@@ -248,6 +301,21 @@ export default function Sidebar({
           >
             Live
           </button>
+        </div>
+
+        {/* Repository URL Input */}
+        <div className="sidebar-repo-input">
+          <label className="sidebar-repo-label">Repository URL</label>
+          <div className="sidebar-repo-input-wrapper">
+            <span className="material-symbols-outlined">link</span>
+            <input
+              type="url"
+              placeholder="github.com/user/repo"
+              value={repoUrl}
+              onChange={(e) => onRepoUrlChange(e.target.value)}
+              disabled={loading}
+            />
+          </div>
         </div>
 
         {/* Nav items */}
