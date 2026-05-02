@@ -123,9 +123,10 @@ Response includes:
 ### Dashboard scan
 
 1. Navigate to http://localhost:3000
-2. Upload files or paste code
-3. Click "Run Security Scan"
-4. View real-time results
+2. Upload url of the repository you want to scan.
+3. Change the mode to Live API, using toggle button.
+4. Click "Run Audit Now"
+5. View real-time results
 
 ### Demo scan
 
