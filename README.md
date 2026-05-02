@@ -1,6 +1,7 @@
-# CodeGuard AI - Intelligent Security Audit Engine
+# CodeGuard AI  
+### Intelligent Security Audit Engine  
 
-Team AVON | IBM Bob Hackathon 2026
+**Team AVON** | IBM Bob Hackathon 2026  
 
 AI-powered static code analysis with automated vulnerability detection and remediation suggestions powered by IBM Bob.
 
@@ -8,24 +9,28 @@ AI-powered static code analysis with automated vulnerability detection and remed
 
 ## Quick Start
 
+```bash
 cd engine
 npm install
 npm start
+````
 
 Server runs on:
-http://localhost:3000
+**[http://localhost:3000](http://localhost:3000)**
 
 ---
 
 ## API Endpoints
 
-### Core Audit Endpoints
+### Core Audit
 
-POST /api/v1/audit
+#### `POST /api/v1/audit`
 
 Run a security audit on provided code files.
 
-Request
+**Request**
+
+```json
 {
   "files": [
     {
@@ -34,8 +39,11 @@ Request
     }
   ]
 }
+```
 
-Response
+**Response**
+
+```json
 {
   "success": true,
   "data": {
@@ -54,35 +62,35 @@ Response
     "overallScore": 42
   }
 }
+```
 
 ---
 
-POST /api/v1/audit/remediation
+#### `POST /api/v1/audit/remediation`
 
 Run audit with IBM Bob remediation suggestions.
 
-Response includes:
-- Full vulnerability breakdown
-- IBM Bob-ready remediation prompts
-- Test case templates
-- Priority scoring
-- Estimated effort
+**Includes**
+
+* Full vulnerability breakdown
+* IBM Bob-ready fix prompts
+* Test case templates
+* Priority scoring
+* Estimated effort
 
 ---
 
-### Demo and Utility Endpoints
+### Demo & Utility
 
-GET /api/v1/demo
+#### `GET /api/v1/demo`
 
 Instant demo with pre-loaded vulnerable code (29 vulnerabilities).
 
----
+#### `GET /api/v1/metrics`
 
-GET /api/v1/metrics
+**Response**
 
-Time-saved calculations and efficiency metrics.
-
-Response
+```json
 {
   "total_vulnerabilities": 29,
   "manual_review_time_minutes": 435,
@@ -91,13 +99,11 @@ Response
   "time_saved_hours": 7.2,
   "efficiency_improvement": "100%"
 }
+```
 
----
+#### `GET /api/v1/vulnerabilities/:severity`
 
-GET /api/v1/vulnerabilities/:severity
-
-Filter vulnerabilities by severity:
-CRITICAL, HIGH, MEDIUM, LOW
+Filter by: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`
 
 ---
 
@@ -105,29 +111,30 @@ CRITICAL, HIGH, MEDIUM, LOW
 
 ### OWASP Top 10 Coverage
 
-- A01: Broken Access Control — Missing authentication, exposed admin routes
-- A02: Cryptographic Failures — Weak hashing (MD5, SHA1), hardcoded secrets
-- A03: Injection — SQL, NoSQL, command, and code injection
-- A04: Insecure Design — Missing rate limiting, weak session tokens
-- A05: Security Misconfiguration — CORS wildcards, disabled SSL verification
-- A06: Vulnerable Components — Outdated dependencies
-- A07: Authentication Failures — Weak passwords, missing JWT expiry
-- A08: Software and Data Integrity — eval(), unsafe deserialization
-- A09: Logging Failures — Missing error handling
-- A10: SSRF — Unvalidated URL fetching
+* **A01:** Broken Access Control — Missing authentication, exposed admin routes
+* **A02:** Cryptographic Failures — Weak hashing (MD5, SHA1), hardcoded secrets
+* **A03:** Injection — SQL, NoSQL, command, and code injection
+* **A04:** Insecure Design — Missing rate limiting, weak session tokens
+* **A05:** Security Misconfiguration — CORS wildcards, disabled SSL verification
+* **A06:** Vulnerable Components — Outdated dependencies
+* **A07:** Authentication Failures — Weak passwords, missing JWT expiry
+* **A08:** Software & Data Integrity — eval(), unsafe deserialization
+* **A09:** Logging Failures — Missing error handling
+* **A10:** SSRF — Unvalidated URL fetching
 
 ### Detection Features
 
-- Confidence scoring (0.0–1.0) for each finding
-- Risk-adjusted impact calculation
-- Fix suggestions for every vulnerability
-- Security explanations ("Why it matters")
-- Line-level detection with file and line numbers
+* Confidence scoring (0.0–1.0)
+* Risk-adjusted impact calculation
+* Fix suggestions per vulnerability
+* Security explanations ("Why it matters")
+* Line-level detection (file + line number)
 
 ---
 
 ## Architecture
 
+```
 main-repo/
 ├── engine/
 │   ├── app.js
@@ -149,37 +156,43 @@ main-repo/
 │   ├── index.js
 │   └── impact.js
 └── README.md
+```
 
 ---
 
 ## Key Features
 
-1. Real Static Analysis
-- Pattern-based detection (not AI guessing)
-- 29 vulnerability types detected
-- Deterministic and explainable results
+### Real Static Analysis
 
-2. Business Impact Metrics
-- $18,500 estimated savings (demo data)
-- 7.2 hours time saved per scan
-- Risk-adjusted scoring
+* Pattern-based detection (not AI guessing)
+* 29 vulnerability types detected
+* Deterministic and explainable results
 
-3. IBM Bob Integration
-- Structured prompts for automated fixes
-- Test case generation
-- Priority and effort estimation
+### Business Impact Metrics
 
-4. Production-Ready API
-- RESTful design
-- Helmet security middleware
-- Morgan logging
-- Error handling
-- Request validation
+* $18,500 estimated savings (demo data)
+* 7.2 hours saved per scan
+* Risk-adjusted scoring
+
+### IBM Bob Integration
+
+* Structured prompts for automated fixes
+* Test case generation
+* Priority and effort estimation
+
+### Production-Ready API
+
+* RESTful design
+* Helmet security middleware
+* Morgan logging
+* Error handling
+* Request validation
 
 ---
 
 ## Testing
 
+```bash
 # Health check
 curl http://localhost:3000/health
 
@@ -191,27 +204,30 @@ curl http://localhost:3000/api/v1/metrics
 
 # Critical vulnerabilities
 curl http://localhost:3000/api/v1/vulnerabilities/CRITICAL
+```
 
 ---
 
 ## Demo Results
 
-Mock Repository Analysis:
-- 29 vulnerabilities detected
-- 2 CRITICAL (SSRF, Command Injection)
-- 14 HIGH (SQL Injection, XSS, etc.)
-- 13 MEDIUM (Weak crypto, misconfigurations)
-- Overall Security Score: 42/100
+**Mock Repository Analysis**
+
+* 29 vulnerabilities detected
+* 2 CRITICAL (SSRF, Command Injection)
+* 14 HIGH (SQL Injection, XSS, etc.)
+* 13 MEDIUM (Weak crypto, misconfigurations)
+
+**Overall Security Score:** 42/100
 
 ---
 
 ## Tech Stack
 
-- Node.js 18+
-- Express.js
-- Helmet
-- Morgan
-- Custom OWASP Engine
+* Node.js 18+
+* Express.js
+* Helmet
+* Morgan
+* Custom OWASP Engine
 
 ---
 
@@ -219,5 +235,5 @@ Mock Repository Analysis:
 
 Built for IBM Bob Hackathon 2026
 
-Mission:
+**Mission:**
 Make security audits instant, automated, and actionable.
