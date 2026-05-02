@@ -51,9 +51,11 @@ function buildDependencyGraph(repoFiles) {
       } else {
         // Try to find by partial match for relative imports
         const possibleMatches = Array.from(graph.fileMap.keys()).filter(file => {
+          if (!file || typeof file !== 'string') return false;
           const importName = importInfo.path.replace(/^\.\.?\//, '').replace(/\//g, '/');
           return file.includes(importName) || file.endsWith(importName + '.js');
         });
+       
         
         if (possibleMatches.length > 0) {
           graph.edges.push({
@@ -268,6 +270,9 @@ function extractVariables(content) {
  * @returns {String|null} Resolved file path or null if not found
  */
 function resolveImportPath(importPath, currentFile, fileMap) {
+  if (!currentFile || typeof currentFile !== 'string') {
+    return null; 
+  }
   // Skip node_modules and built-in modules
   if (!importPath.startsWith('.') && !importPath.startsWith('/')) {
     return null;
@@ -429,4 +434,4 @@ module.exports = {
   extractFunctionCalls
 };
 
-// Made with Bob
+
