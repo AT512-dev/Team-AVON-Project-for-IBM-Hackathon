@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///D:/ibm_hackathon/Team-AVON-Project-for-IBM-Hackathon/dashboard/src/app/page.tsx"],"sourcesContent":["import DashboardUI from \"@/components/DashboardUI\";\r\n\r\nexport default function Page() {\r\n  return <DashboardUI />;\r\n}\r\n"],"names":["Page","DashboardUI"],"mappings":";;;;;;;;;;;;AAEe,SAASA;IACtB,qBAAO,8OAACC;;;;;AACV"}}]
-}
