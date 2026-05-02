@@ -4,8 +4,48 @@ import { useState, useMemo } from "react";
 import { type Vulnerability } from "../../lib/api";
 import { SEVERITY_CONFIG } from "../styles";
 
-type SortField = "severity" | "file" | "confidence" | "type";
+type SortField = "severity" | "file" | "confidence" | "type" | "cvss";
 type SortDirection = "asc" | "desc";
+
+// ── CVSS Score Badge ──────────────────────────────────────────────────────────
+function CVSSBadge({ score }: { score?: number }) {
+  if (!score) return null;
+
+  let color = "#6b7280";
+  let bg = "rgba(107,114,128,0.1)";
+  let label = "LOW";
+
+  if (score >= 9.0) {
+    color = "#ef4444";
+    bg = "rgba(239,68,68,0.1)";
+    label = "CRITICAL";
+  } else if (score >= 7.0) {
+    color = "#f97316";
+    bg = "rgba(249,115,22,0.1)";
+    label = "HIGH";
+  } else if (score >= 4.0) {
+    color = "#eab308";
+    bg = "rgba(234,179,8,0.1)";
+    label = "MEDIUM";
+  }
+
+  return (
+    <span
+      style={{
+        padding: "2px 10px",
+        borderRadius: 9999,
+        fontSize: "0.7rem",
+        fontWeight: 700,
+        letterSpacing: "0.05em",
+        color,
+        background: bg,
+        border: `1px solid ${color}33`,
+      }}
+    >
+      {label} {score.toFixed(1)}
+    </span>
+  );
+}
 
 // ── Severity Badge ────────────────────────────────────────────────────────────
 function SeverityBadge({ severity }: { severity: string }) {
@@ -99,6 +139,10 @@ function VulnRow({
         <td style={{ padding: "1rem 1.5rem" }}>
           <SeverityBadge severity={vuln.severity} />
         </td>
+        {/* CVSS Score */}
+        <td style={{ padding: "1rem 1.5rem" }}>
+          <CVSSBadge score={vuln.cvssScore} />
+        </td>
         {/* Confidence */}
         <td style={{ padding: "1rem 1.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -176,7 +220,7 @@ function VulnRow({
             borderBottom: "1px solid rgba(255,255,255,0.05)",
           }}
         >
-          <td colSpan={6} style={{ padding: "1rem 1.5rem" }}>
+          <td colSpan={7} style={{ padding: "1rem 1.5rem" }}>
             <div
               style={{
                 display: "grid",
@@ -271,6 +315,178 @@ function VulnRow({
                 </div>
               </div>
             </div>
+
+            {/* Taint Path Visualization */}
+            {vuln.dataFlow && (
+              <div
+                style={{
+                  marginTop: "1rem",
+                  padding: "1rem",
+                  background: "rgba(0,0,0,0.3)",
+                  borderRadius: "0.5rem",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: "0.6875rem",
+                    color: "#6b7280",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    marginBottom: "0.75rem",
+                  }}
+                >
+                  🔍 Data Flow Analysis
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.5rem",
+                  }}
+                >
+                  {/* Source */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "1.25rem",
+                        color: "#34d399",
+                      }}
+                    >
+                      🟢
+                    </span>
+                    <div>
+                      <span
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "#6b7280",
+                          marginRight: "0.5rem",
+                        }}
+                      >
+                        Source:
+                      </span>
+                      <code
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "#34d399",
+                          fontFamily: "JetBrains Mono, monospace",
+                        }}
+                      >
+                        {vuln.dataFlow.source}
+                      </code>
+                    </div>
+                  </div>
+
+                  {/* Arrow */}
+                  <div
+                    style={{
+                      paddingLeft: "0.625rem",
+                      color: "#6b7280",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    ↓
+                  </div>
+
+                  {/* Tainted Variables */}
+                  {vuln.dataFlow.taintedVariables &&
+                    vuln.dataFlow.taintedVariables.length > 0 && (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "1.25rem",
+                              color: "#fbbf24",
+                            }}
+                          >
+                            🟡
+                          </span>
+                          <div>
+                            <span
+                              style={{
+                                fontSize: "0.75rem",
+                                color: "#6b7280",
+                                marginRight: "0.5rem",
+                              }}
+                            >
+                              Tainted:
+                            </span>
+                            <code
+                              style={{
+                                fontSize: "0.75rem",
+                                color: "#fbbf24",
+                                fontFamily: "JetBrains Mono, monospace",
+                              }}
+                            >
+                              {vuln.dataFlow.taintedVariables.join(", ")}
+                            </code>
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            paddingLeft: "0.625rem",
+                            color: "#6b7280",
+                            fontSize: "1rem",
+                          }}
+                        >
+                          ↓
+                        </div>
+                      </>
+                    )}
+
+                  {/* Sink */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "1.25rem",
+                        color: "#ef4444",
+                      }}
+                    >
+                      🔴
+                    </span>
+                    <div>
+                      <span
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "#6b7280",
+                          marginRight: "0.5rem",
+                        }}
+                      >
+                        Sink:
+                      </span>
+                      <code
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "#ef4444",
+                          fontFamily: "JetBrains Mono, monospace",
+                        }}
+                      >
+                        {vuln.dataFlow.sink}
+                      </code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </td>
         </tr>
       )}
@@ -330,6 +546,9 @@ export default function VulnerabilitiesTable({
           break;
         case "type":
           comparison = a.type.localeCompare(b.type);
+          break;
+        case "cvss":
+          comparison = (a.cvssScore || 0) - (b.cvssScore || 0);
           break;
       }
 
@@ -525,6 +744,12 @@ export default function VulnerabilitiesTable({
                     onClick={() => handleSort("severity")}
                   >
                     Severity
+                  </th>
+                  <th
+                    className={`sortable ${sortField === "cvss" ? `sorted-${sortDirection}` : ""}`}
+                    onClick={() => handleSort("cvss")}
+                  >
+                    CVSS Score
                   </th>
                   <th
                     className={`sortable ${sortField === "confidence" ? `sorted-${sortDirection}` : ""}`}

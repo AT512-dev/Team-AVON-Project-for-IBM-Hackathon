@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { type Vulnerability } from "../../lib/api";
+import { type Vulnerability, isCodeBlock } from "../../lib/api";
 import { SEVERITY_CONFIG } from "../styles";
 
 interface PRCardProps {
@@ -13,12 +13,46 @@ function PRCard({ vuln, index }: PRCardProps) {
   const cfg = SEVERITY_CONFIG[vuln.severity] ?? SEVERITY_CONFIG.LOW;
   const [showModal, setShowModal] = useState(false);
 
+  // Use enhanced remediation if available, fallback to fix_suggestion
+  const remediationText = vuln.remediation?.suggestedFix || vuln.fix_suggestion;
+  const isCode = isCodeBlock(remediationText);
+
   const handleViewPR = () => {
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
+  };
+
+  // Helper to get priority color
+  const getPriorityColor = (priority?: string) => {
+    switch (priority?.toUpperCase()) {
+      case "IMMEDIATE":
+        return "rgba(239,68,68,0.2)";
+      case "HIGH":
+        return "rgba(249,115,22,0.2)";
+      case "MEDIUM":
+        return "rgba(234,179,8,0.2)";
+      case "LOW":
+        return "rgba(107,114,128,0.2)";
+      default:
+        return "rgba(99,102,241,0.2)";
+    }
+  };
+
+  // Helper to get effort color
+  const getEffortColor = (effort?: string) => {
+    switch (effort?.toUpperCase()) {
+      case "HIGH":
+        return "rgba(239,68,68,0.15)";
+      case "MEDIUM":
+        return "rgba(234,179,8,0.15)";
+      case "LOW":
+        return "rgba(16,185,129,0.15)";
+      default:
+        return "rgba(107,114,128,0.15)";
+    }
   };
 
   const handleCopyPRDescription = () => {
@@ -62,7 +96,14 @@ ${vuln.code}
           marginBottom: "0.75rem",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            flex: 1,
+          }}
+        >
           <div
             style={{
               width: 36,
@@ -82,7 +123,7 @@ ${vuln.code}
               alt_route
             </span>
           </div>
-          <div>
+          <div style={{ flex: 1 }}>
             <p
               style={{
                 fontSize: "0.875rem",
@@ -105,19 +146,40 @@ ${vuln.code}
             </code>
           </div>
         </div>
-        <span
-          style={{
-            fontSize: "0.7rem",
-            padding: "2px 8px",
-            borderRadius: 9999,
-            fontWeight: 600,
-            color: cfg.color,
-            background: cfg.bg,
-            whiteSpace: "nowrap",
-          }}
-        >
-          Pending
-        </span>
+        <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" }}>
+          {vuln.remediation?.priority && (
+            <span
+              style={{
+                fontSize: "0.65rem",
+                padding: "2px 8px",
+                borderRadius: 9999,
+                fontWeight: 600,
+                color: "#fff",
+                background: getPriorityColor(vuln.remediation.priority),
+                border: "1px solid rgba(255,255,255,0.1)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {vuln.remediation.priority}
+            </span>
+          )}
+          {vuln.remediation?.effort && (
+            <span
+              style={{
+                fontSize: "0.65rem",
+                padding: "2px 8px",
+                borderRadius: 9999,
+                fontWeight: 600,
+                color: "#9ca3af",
+                background: getEffortColor(vuln.remediation.effort),
+                border: "1px solid rgba(255,255,255,0.08)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {vuln.remediation.effort} effort
+            </span>
+          )}
+        </div>
       </div>
 
       <p
@@ -128,7 +190,9 @@ ${vuln.code}
           marginBottom: "1rem",
         }}
       >
-        {vuln.fix_suggestion}
+        {remediationText.length > 100
+          ? remediationText.substring(0, 100) + "..."
+          : remediationText}
       </p>
 
       <button
@@ -412,31 +476,90 @@ ${vuln.code}
                 marginBottom: "1.5rem",
               }}
             >
-              <h3
+              <div
                 style={{
-                  color: "#fff",
-                  fontSize: "1rem",
-                  fontWeight: 600,
-                  marginBottom: "0.75rem",
-                  fontFamily: "Inter, sans-serif",
                   display: "flex",
+                  justifyContent: "space-between",
                   alignItems: "center",
-                  gap: "0.5rem",
+                  marginBottom: "0.75rem",
                 }}
               >
-                <span style={{ fontSize: "1.25rem" }}>💡</span>
-                Proposed Fix
-              </h3>
-              <p
-                style={{
-                  color: "#6ee7b7",
-                  fontSize: "0.875rem",
-                  lineHeight: 1.7,
-                  fontFamily: "Inter, sans-serif",
-                }}
-              >
-                {vuln.fix_suggestion}
-              </p>
+                <h3
+                  style={{
+                    color: "#fff",
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    fontFamily: "Inter, sans-serif",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <span style={{ fontSize: "1.25rem" }}>💡</span>
+                  Proposed Fix
+                </h3>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  {vuln.remediation?.priority && (
+                    <span
+                      style={{
+                        fontSize: "0.7rem",
+                        padding: "3px 10px",
+                        borderRadius: 9999,
+                        fontWeight: 600,
+                        color: "#fff",
+                        background: getPriorityColor(vuln.remediation.priority),
+                        border: "1px solid rgba(255,255,255,0.1)",
+                      }}
+                    >
+                      {vuln.remediation.priority}
+                    </span>
+                  )}
+                  {vuln.remediation?.effort && (
+                    <span
+                      style={{
+                        fontSize: "0.7rem",
+                        padding: "3px 10px",
+                        borderRadius: 9999,
+                        fontWeight: 600,
+                        color: "#9ca3af",
+                        background: getEffortColor(vuln.remediation.effort),
+                        border: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      {vuln.remediation.effort} effort
+                    </span>
+                  )}
+                </div>
+              </div>
+              {isCode ? (
+                <pre
+                  style={{
+                    background: "rgba(0,0,0,0.4)",
+                    padding: "1rem",
+                    borderRadius: "0.5rem",
+                    overflow: "auto",
+                    fontSize: "0.8125rem",
+                    color: "#6ee7b7",
+                    fontFamily: "JetBrains Mono, monospace",
+                    lineHeight: 1.6,
+                    margin: 0,
+                  }}
+                >
+                  {remediationText}
+                </pre>
+              ) : (
+                <p
+                  style={{
+                    color: "#6ee7b7",
+                    fontSize: "0.875rem",
+                    lineHeight: 1.7,
+                    fontFamily: "Inter, sans-serif",
+                    margin: 0,
+                  }}
+                >
+                  {remediationText}
+                </p>
+              )}
             </div>
 
             {/* Code Section */}
