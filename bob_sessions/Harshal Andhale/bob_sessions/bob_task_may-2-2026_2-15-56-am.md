@@ -630,62 +630,118 @@ IMPORTANT: When task status changes, remember to call the `update_todo_list` too
 </file>
 <file><path>Team-AVON-Project/.gitignore</path>
 <content lines="1-113">
- 1 | ��#   D e p e n d e n c i e s  
- 2 |  n o d e _ m o d u l e s /  
- 3 |  p a c k a g e - l o c k . j s o n  
- 4 |   
- 5 |  #   E n v i r o n m e n t   v a r i a b l e s  
- 6 |  . e n v  
- 7 |  . e n v . l o c a l  
- 8 |  . e n v . * . l o c a l  
- 9 |   
-10 |  #   L o g s  
-11 |  l o g s /  
-12 |  * . l o g  
-13 |  n p m - d e b u g . l o g *  
-14 |  y a r n - d e b u g . l o g *  
-15 |  y a r n - e r r o r . l o g *  
-16 |   
-17 |  #   R u n t i m e   d a t a  
-18 |  p i d s /  
-19 |  * . p i d  
-20 |  * . s e e d  
-21 |  * . p i d . l o c k  
-22 |   
-23 |  #   C o v e r a g e   d i r e c t o r y  
-24 |  c o v e r a g e /  
-25 |  . n y c _ o u t p u t /  
-26 |   
-27 |  #   I D E  
-28 |  . v s c o d e /  
-29 |  . i d e a /  
-30 |  * . s w p  
-31 |  * . s w o  
-32 |  * ~  
-33 |  . D S _ S t o r e  
-34 |   
-35 |  #   B u i l d   o u t p u t s  
-36 |  d i s t /  
-37 |  b u i l d /  
-38 |  * . t s b u i l d i n f o  
-39 |   
-40 |  #   T e s t i n g  
-41 |  . j e s t /  
-42 |   
-43 |  #   P y t h o n  
-44 |  _ _ p y c a c h e _ _ /  
-45 |  * . p y [ c o d ]  
-46 |  * $ p y . c l a s s  
-47 |  * . s o  
-48 |  . P y t h o n  
-49 |  e n v /  
-50 |  v e n v /  
-51 |  E N V /  
-52 |   
-53 |  #   T e m p o r a r y   f i l e s  
-54 |  t m p /  
-55 |  t e m p /  
-56 |  * . t m p  
+ 1 | ��#   D e p e n d e n c i e s 
+ 
+ 2 |  n o d e _ m o d u l e s / 
+ 
+ 3 |  p a c k a g e - l o c k . j s o n 
+ 
+ 4 |  
+ 
+ 5 |  #   E n v i r o n m e n t   v a r i a b l e s 
+ 
+ 6 |  . e n v 
+ 
+ 7 |  . e n v . l o c a l 
+ 
+ 8 |  . e n v . * . l o c a l 
+ 
+ 9 |  
+ 
+10 |  #   L o g s 
+ 
+11 |  l o g s / 
+ 
+12 |  * . l o g 
+ 
+13 |  n p m - d e b u g . l o g * 
+ 
+14 |  y a r n - d e b u g . l o g * 
+ 
+15 |  y a r n - e r r o r . l o g * 
+ 
+16 |  
+ 
+17 |  #   R u n t i m e   d a t a 
+ 
+18 |  p i d s / 
+ 
+19 |  * . p i d 
+ 
+20 |  * . s e e d 
+ 
+21 |  * . p i d . l o c k 
+ 
+22 |  
+ 
+23 |  #   C o v e r a g e   d i r e c t o r y 
+ 
+24 |  c o v e r a g e / 
+ 
+25 |  . n y c _ o u t p u t / 
+ 
+26 |  
+ 
+27 |  #   I D E 
+ 
+28 |  . v s c o d e / 
+ 
+29 |  . i d e a / 
+ 
+30 |  * . s w p 
+ 
+31 |  * . s w o 
+ 
+32 |  * ~ 
+ 
+33 |  . D S _ S t o r e 
+ 
+34 |  
+ 
+35 |  #   B u i l d   o u t p u t s 
+ 
+36 |  d i s t / 
+ 
+37 |  b u i l d / 
+ 
+38 |  * . t s b u i l d i n f o 
+ 
+39 |  
+ 
+40 |  #   T e s t i n g 
+ 
+41 |  . j e s t / 
+ 
+42 |  
+ 
+43 |  #   P y t h o n 
+ 
+44 |  _ _ p y c a c h e _ _ / 
+ 
+45 |  * . p y [ c o d ] 
+ 
+46 |  * $ p y . c l a s s 
+ 
+47 |  * . s o 
+ 
+48 |  . P y t h o n 
+ 
+49 |  e n v / 
+ 
+50 |  v e n v / 
+ 
+51 |  E N V / 
+ 
+52 |  
+ 
+53 |  #   T e m p o r a r y   f i l e s 
+ 
+54 |  t m p / 
+ 
+55 |  t e m p / 
+ 
+56 |  * . t m p 
+ 
 57 |  
 </content>
 </file>
@@ -975,62 +1031,118 @@ IMPORTANT: When task status changes, remember to call the `update_todo_list` too
 <files>
 <file><path>Team-AVON-Project/.gitignore</path>
 <content lines="1-113">
- 1 | ��#   D e p e n d e n c i e s  
- 2 |  n o d e _ m o d u l e s /  
- 3 |  p a c k a g e - l o c k . j s o n  
- 4 |   
- 5 |  #   E n v i r o n m e n t   v a r i a b l e s  
- 6 |  . e n v  
- 7 |  . e n v . l o c a l  
- 8 |  . e n v . * . l o c a l  
- 9 |   
-10 |  #   L o g s  
-11 |  l o g s /  
-12 |  * . l o g  
-13 |  n p m - d e b u g . l o g *  
-14 |  y a r n - d e b u g . l o g *  
-15 |  y a r n - e r r o r . l o g *  
-16 |   
-17 |  #   R u n t i m e   d a t a  
-18 |  p i d s /  
-19 |  * . p i d  
-20 |  * . s e e d  
-21 |  * . p i d . l o c k  
-22 |   
-23 |  #   C o v e r a g e   d i r e c t o r y  
-24 |  c o v e r a g e /  
-25 |  . n y c _ o u t p u t /  
-26 |   
-27 |  #   I D E  
-28 |  . v s c o d e /  
-29 |  . i d e a /  
-30 |  * . s w p  
-31 |  * . s w o  
-32 |  * ~  
-33 |  . D S _ S t o r e  
-34 |   
-35 |  #   B u i l d   o u t p u t s  
-36 |  d i s t /  
-37 |  b u i l d /  
-38 |  * . t s b u i l d i n f o  
-39 |   
-40 |  #   T e s t i n g  
-41 |  . j e s t /  
-42 |   
-43 |  #   P y t h o n  
-44 |  _ _ p y c a c h e _ _ /  
-45 |  * . p y [ c o d ]  
-46 |  * $ p y . c l a s s  
-47 |  * . s o  
-48 |  . P y t h o n  
-49 |  e n v /  
-50 |  v e n v /  
-51 |  E N V /  
-52 |   
-53 |  #   T e m p o r a r y   f i l e s  
-54 |  t m p /  
-55 |  t e m p /  
-56 |  * . t m p  
+ 1 | ��#   D e p e n d e n c i e s 
+ 
+ 2 |  n o d e _ m o d u l e s / 
+ 
+ 3 |  p a c k a g e - l o c k . j s o n 
+ 
+ 4 |  
+ 
+ 5 |  #   E n v i r o n m e n t   v a r i a b l e s 
+ 
+ 6 |  . e n v 
+ 
+ 7 |  . e n v . l o c a l 
+ 
+ 8 |  . e n v . * . l o c a l 
+ 
+ 9 |  
+ 
+10 |  #   L o g s 
+ 
+11 |  l o g s / 
+ 
+12 |  * . l o g 
+ 
+13 |  n p m - d e b u g . l o g * 
+ 
+14 |  y a r n - d e b u g . l o g * 
+ 
+15 |  y a r n - e r r o r . l o g * 
+ 
+16 |  
+ 
+17 |  #   R u n t i m e   d a t a 
+ 
+18 |  p i d s / 
+ 
+19 |  * . p i d 
+ 
+20 |  * . s e e d 
+ 
+21 |  * . p i d . l o c k 
+ 
+22 |  
+ 
+23 |  #   C o v e r a g e   d i r e c t o r y 
+ 
+24 |  c o v e r a g e / 
+ 
+25 |  . n y c _ o u t p u t / 
+ 
+26 |  
+ 
+27 |  #   I D E 
+ 
+28 |  . v s c o d e / 
+ 
+29 |  . i d e a / 
+ 
+30 |  * . s w p 
+ 
+31 |  * . s w o 
+ 
+32 |  * ~ 
+ 
+33 |  . D S _ S t o r e 
+ 
+34 |  
+ 
+35 |  #   B u i l d   o u t p u t s 
+ 
+36 |  d i s t / 
+ 
+37 |  b u i l d / 
+ 
+38 |  * . t s b u i l d i n f o 
+ 
+39 |  
+ 
+40 |  #   T e s t i n g 
+ 
+41 |  . j e s t / 
+ 
+42 |  
+ 
+43 |  #   P y t h o n 
+ 
+44 |  _ _ p y c a c h e _ _ / 
+ 
+45 |  * . p y [ c o d ] 
+ 
+46 |  * $ p y . c l a s s 
+ 
+47 |  * . s o 
+ 
+48 |  . P y t h o n 
+ 
+49 |  e n v / 
+ 
+50 |  v e n v / 
+ 
+51 |  E N V / 
+ 
+52 |  
+ 
+53 |  #   T e m p o r a r y   f i l e s 
+ 
+54 |  t m p / 
+ 
+55 |  t e m p / 
+ 
+56 |  * . t m p 
+ 
 57 |  
 </content>
 </file>
@@ -1042,17 +1154,17 @@ IMPORTANT: When task status changes, remember to call the `update_todo_list` too
   4 | 
   5 | # IBM Cloud API Key
   6 | # Get from: https://cloud.ibm.com/iam/apikeys
-  7 | IBM_CLOUD_API_KEY=i0V9Tt_WMqBzfpV0ho9_-rag_bMgOPY10KA8AL5h5nua
+  7 | IBM_CLOUD_API_KEY=
   8 | 
   9 | # WatsonX Project ID
  10 | # Get from: https://dataplatform.cloud.ibm.com/wx/home
- 11 | WATSONX_PROJECT_ID=ca5d9b01-a60e-42e4-b1b8-91cde871e468
+ 11 | WATSONX_PROJECT_ID=
  12 | 
  13 | # IBM Cloud URL (Region-specific)
  14 | # US South: https://us-south.ml.cloud.ibm.com
  15 | # EU: https://eu-de.ml.cloud.ibm.com
  16 | # UK: https://eu-gb.ml.cloud.ibm.com
- 17 | IBM_CLOUD_URL=https://us-south.ml.cloud.ibm.com
+ 17 | IBM_CLOUD_URL=
  18 | 
  19 | # Model ID for WatsonX
  20 | # Options:
