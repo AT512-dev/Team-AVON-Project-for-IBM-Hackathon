@@ -896,10 +896,13 @@ All rights reserved. This software is the intellectual property of Team AVON and
 ### Team AVON
 
 **Hackathon Project Leads:**
-- Technical Architecture: [Team Lead Name]
-- Backend Development: [Backend Lead Name]
-- Frontend Development: [Frontend Lead Name]
-- Security Research: [Security Lead Name]
+  # Hackathon Project Leads:
+  Team Lead: Aleksandre Tkeshelashvili(Aleks Aleks)   Technical Architecture: Harshal Andhale
+  Backend Development: Karl Austin   
+  Frontend Development: ALI JAN  
+  Security Research: Karl Austin   
+  Design Lead & Presentation Storytelle:Bridget Monday
+
 
 **Communication Channels:**
 - Official Hackathon Slack: #team-avon
@@ -926,12 +929,6 @@ For questions, bug reports, or feature requests, please use the official hackath
 This project builds upon established security research and industry best practices. We extend our gratitude to the broader security community for their contributions to open-source security tooling.
 
 ---
-
-# Hackathon Project Leads:
-Team Lead: Aleksandre Tkeshelashvili(Aleks Aleks)   Technical Architecture: Harshal Andhale
-Backend Development: Karl Austin   
-Frontend Development: ALI JAN  
-Security Research: Karl Austin   
 
 **Last Updated:** May 3, 2026  
 **Version:** 1.0.0  
