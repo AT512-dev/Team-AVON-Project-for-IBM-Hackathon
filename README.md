@@ -661,73 +661,81 @@ If IBM authentication fails:
 
 ## Architecture Overview
 
+CodeGuard AI employs a three-tier architecture separating security analysis logic, API layer, and presentation interface. The backend engine performs deterministic static analysis using pattern matching and abstract syntax tree traversal, while the frontend provides interactive visualization of security findings.
+
 ### System Components
 
 ```
 codeguard-ai/
-├── engine/                          # Backend API service
+├── engine/                          # Backend Security Analysis Engine
 │   ├── server.js                    # Express server entry point
-│   ├── app.js                       # Application configuration
+│   ├── app.js                       # Application configuration and middleware
 │   ├── routes/
 │   │   └── audit.js                 # RESTful API route definitions
 │   ├── controllers/
-│   │   └── auditController.js       # Request handling logic
+│   │   └── auditController.js       # Request handling and response formatting
 │   ├── services/
 │   │   ├── auditService.js          # Core audit orchestration
 │   │   ├── dataFlowTracker.js       # Cross-file taint analysis
 │   │   ├── dependencyAnalyzer.js    # Dependency graph construction
-│   │   ├── bobOrchestrator.js       # IBM WatsonX integration
+│   │   ├── bobOrchestrator.js       # IBM WatsonX integration layer
 │   │   └── remediation.js           # Fix generation engine
 │   ├── config/
 │   │   └── ibmBobClient.js          # IBM API client configuration
 │   ├── middleware/
-│   │   ├── validateRequest.js       # Input validation
+│   │   ├── validateRequest.js       # Input validation and sanitization
 │   │   └── errorHandler.js          # Centralized error handling
 │   └── security_rules/
 │       └── index.js                 # Vulnerability pattern definitions
 │
-└── dashboard/                       # Frontend web interface
+└── dashboard/                       # Frontend Web Interface
     ├── src/
     │   ├── app/
     │   │   ├── page.tsx             # Main dashboard page
-    │   │   └── layout.tsx           # Application layout
+    │   │   └── layout.tsx           # Application root layout
     │   ├── components/
     │   │   ├── DashboardUI.tsx      # Dashboard state management
-    │   │   ├── VulnerabilitiesTable.tsx
-    │   │   ├── MetricsRow.tsx
-    │   │   └── SeverityBreakdown.tsx
+    │   │   ├── VulnerabilitiesTable.tsx  # Vulnerability listing
+    │   │   ├── MetricsRow.tsx       # Performance metrics display
+    │   │   ├── SeverityBreakdown.tsx # Severity distribution charts
+    │   │   └── ErrorBanner.tsx      # Error state handling
     │   └── lib/
-    │       └── api.ts               # API client functions
+    │       ├── api.ts               # API client functions
+    │       └── report.ts            # Report generation and export utilities
     └── public/
-        └── assets/                  # Static assets
+        └── assets/                  # Static assets and icons
 ```
 
 ### Data Flow Architecture
 
-1. **Input Processing:**
-   - Files uploaded via API or dashboard
-   - Content validation and sanitization
-   - AST generation for each file
+**Analysis Pipeline:**
+1. Files ingested via API endpoint or dashboard upload
+2. Content validation and AST generation per file
+3. Pattern matching against security rule database
+4. Cross-file dependency resolution and data flow tracking
+5. CVSS scoring and CWE classification
+6. Optional IBM WatsonX remediation enhancement
+7. JSON report assembly and frontend serialization
 
-2. **Static Analysis:**
-   - Pattern matching against security rules
-   - Cross-file dependency tracking
-   - Data flow taint analysis
-   - CVSS and CWE classification
+**Frontend Workflow:**
+1. User uploads files or triggers demo scan
+2. API client (`lib/api.ts`) sends POST request to engine
+3. Real-time status updates during analysis
+4. Report transformation (`lib/report.ts`) formats data for visualization
+5. Interactive components render vulnerabilities by severity
+6. Export functionality generates shareable reports
 
-3. **AI Enhancement (Optional):**
-   - Vulnerability context preparation
-   - WatsonX API invocation
-   - Natural language remediation generation
-   - Response integration
+### Key Design Decisions
 
-4. **Output Generation:**
-   - JSON report assembly
-   - HTML/Markdown conversion (optional)
-   - Metrics calculation
-   - Frontend serialization
+**Separation of Concerns:** Security logic isolated in backend engine, enabling headless operation and API-first integration.
 
-Detailed architecture documentation available in `ARCHITECTURE.md`.
+**Stateless API:** Each request contains complete context, allowing horizontal scaling without session management.
+
+**Optional AI Layer:** IBM WatsonX integration designed as enhancement, not dependency, ensuring system reliability.
+
+**Type Safety:** TypeScript across frontend ensures compile-time validation and improved developer experience.
+
+Detailed technical documentation available in `ARCHITECTURE.md`.
 
 ---
 
