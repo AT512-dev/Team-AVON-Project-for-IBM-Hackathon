@@ -906,8 +906,7 @@ All rights reserved. This software is the intellectual property of Team AVON and
 
 **Communication Channels:**
 - Official Hackathon Slack: #team-avon
-- Project Repository: https://github.com/team-avon/codeguard-ai
-- Issue Tracker: https://github.com/team-avon/codeguard-ai/issues
+- Project Repository: https://github.com/AT512-dev/Team-AVON-Project-for-IBM-Hackathon
 
 For questions, bug reports, or feature requests, please use the official hackathon communication channels or submit an issue via the project repository.
 
