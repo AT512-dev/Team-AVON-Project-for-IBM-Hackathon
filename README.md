@@ -899,7 +899,7 @@ All rights reserved. This software is the intellectual property of Team AVON and
   # Hackathon Project Leads:
   Team Lead: Aleksandre Tkeshelashvili(Aleks Aleks)   Technical Architecture: Harshal Andhale
   Backend Development: Karl Austin   
-  Frontend Development: ALI JAN  
+  Frontend lead: ALI JAN  
   Security Research: Karl Austin   
   Design Lead & Presentation Storytelle:Bridget Monday
 
