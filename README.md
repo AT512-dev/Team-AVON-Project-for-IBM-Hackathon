@@ -927,6 +927,12 @@ This project builds upon established security research and industry best practic
 
 ---
 
+# Hackathon Project Leads:
+Team Lead: Aleksandre Tkeshelashvili(Aleks Aleks)   Technical Architecture: Harshal Andhale
+Backend Development: Karl Austin   
+Frontend Development: ALI JAN  
+Security Research: Karl Austin   
+
 **Last Updated:** May 3, 2026  
 **Version:** 1.0.0  
 **Status:** Active Development
